@@ -17,6 +17,7 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="productivity/index" options={{ headerShown: false, presentation: 'card' }} />
         <Stack.Screen name="calendar" options={{ presentation: 'modal', title: 'Calendar' }} />
         <Stack.Screen name="assistant/index" options={{ presentation: 'modal', headerShown: false }} />
       </Stack>

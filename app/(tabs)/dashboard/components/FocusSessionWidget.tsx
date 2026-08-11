@@ -27,22 +27,27 @@ export default function FocusSessionWidget({
   return (
     <>
       <Text style={[styles.sectionHeading, { color: textSecondary }]}>Focus Session</Text>
-      <View style={[styles.card, { backgroundColor: cardBg, borderColor: borderCol }]}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => router.push('/productivity' as any)}
+        style={[styles.card, { backgroundColor: cardBg, borderColor: borderCol }]}
+      >
         <View style={styles.focusWidgetHeader}>
           <View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+              <Feather name="shield" size={12} color={primaryBrown} style={{ marginRight: 5 }} />
+              <Text style={{ fontSize: 11, fontWeight: '700', color: primaryBrown, textTransform: 'uppercase' }}>Strict Study Guard</Text>
+            </View>
             <Text style={[styles.focusTimerText, { color: textPrimary }]}>{timerDisplay}</Text>
             <Text style={[styles.focusTimerSubText, { color: textSecondary }]}>{targetDisplay}</Text>
           </View>
           <View style={styles.focusWidgetActions}>
-            <TouchableOpacity
-              style={[styles.focusWidgetPlayBtn, { backgroundColor: primaryBrown }]}
-              onPress={() => router.push('/(tabs)/tasks/task')}
-            >
+            <View style={[styles.focusWidgetPlayBtn, { backgroundColor: primaryBrown }]}>
               <Feather name="play" size={16} color="#FFFFFF" />
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     </>
   );
 }

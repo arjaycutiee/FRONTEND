@@ -60,7 +60,7 @@ export interface Note {
 export interface CalendarEvent {
   id: string;
   title: string;
-  category: 'Assignment' | 'Exam' | 'Class' | 'Meeting' | 'Personal' | 'AI Study';
+  category: 'Assignment' | 'Exam' | 'Class' | 'Meeting' | 'Personal';
   date: string; // YYYY-MM-DD
   time: string; // HH:MM
   duration: number; // minutes
@@ -688,7 +688,7 @@ class LocalDatabase {
     const d = new Date();
     const dateStr = d.toISOString().split('T')[0];
 
-    let eventCategory: CalendarEvent['category'] = 'AI Study';
+    let eventCategory: CalendarEvent['category'] = 'Personal';
     if (note.category === 'School' || note.category === 'Study Note') eventCategory = 'Class';
     else if (note.category === 'Review') eventCategory = 'Exam';
     else if (note.category === 'Projects') eventCategory = 'Assignment';

@@ -244,7 +244,7 @@ export default function TabLayout() {
               {/* Focus Session */}
               <TouchableOpacity
                 style={styles.menuItem}
-                onPress={() => handleNavigate('/(tabs)/tasks/task')}
+                onPress={() => { closeDrawer(); router.push('/productivity' as any); }}
               >
                 <Feather name="target" size={18} color={textSecondary} style={styles.menuIcon} />
                 <Text style={[styles.menuText, { color: textSecondary }]}>Focus Session</Text>
