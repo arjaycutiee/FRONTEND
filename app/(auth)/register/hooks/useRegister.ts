@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import api from '@/app/services/api';
+import { localDb } from '@/app/services/localDb';
 import { validateRegisterForm } from '../utils';
 
 export function useRegister() {
@@ -75,6 +76,8 @@ export function useRegister() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
+      // Placeholder until real Google auth is wired up.
+      localDb.setCurrentUser({ name: name.trim() || 'Google User', email: email.trim() || 'google-user@gabai.edu.ph' });
       router.replace('/(tabs)/expenses/expenses');
     }, 1200);
   };

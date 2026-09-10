@@ -1,8 +1,27 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
-import { PROFILE_SECTIONS } from '../constants/profileConfig';
 import { profileStyles as styles } from '../styles/profile.styles';
+import { SettingSection } from '../types';
+
+const PROFILE_SECTIONS: SettingSection[] = [
+  {
+    id: 'academic',
+    title: 'ACADEMIC SUMMARY',
+    items: [
+      { id: 'academic_progress', title: 'Academic Progress', icon: 'graduation-cap', iconType: 'fontawesome' },
+      { id: 'grades', title: 'Grades & Achievements', icon: 'award', iconType: 'feather' },
+    ],
+  },
+  {
+    id: 'preferences',
+    title: 'PREFERENCES',
+    items: [
+      { id: 'notifications', title: 'Notification Settings', icon: 'bell', iconType: 'feather' },
+      { id: 'privacy', title: 'Privacy & Security', icon: 'lock', iconType: 'feather' },
+    ],
+  },
+];
 
 interface ProfileSettingsGroupProps {
   cardTheme: string;

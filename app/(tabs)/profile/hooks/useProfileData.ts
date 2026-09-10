@@ -1,21 +1,42 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { localDb } from '@/app/services/localDb';
-import { DEFAULT_USER_PROFILE } from '../constants/profileConfig';
+import { localDb, CurrentUser } from '@/app/services/localDb';
 import { UserProfile, ProfileStatItem } from '../types';
+
+/** Build display initials from a full name, e.g. "Juan Dela Cruz" -> "JD". */
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+/** Map the signed-in account (or none) to what the profile card displays. */
+function toUserProfile(user: CurrentUser | null): UserProfile {
+  if (!user) {
+    return { name: 'Guest', email: 'Not signed in', course: 'Student', initials: '?' };
+  }
+  return {
+    name: user.name,
+    email: user.email,
+    course: user.course || 'Student',
+    initials: getInitials(user.name),
+  };
+}
 
 export function useProfileData() {
   const router = useRouter();
-  const [userProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
 
   // Sync state from central database
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => toUserProfile(localDb.getCurrentUser()));
   const [tasks, setTasks] = useState(() => localDb.getTasks());
   const [events, setEvents] = useState(() => localDb.getEvents());
   const [transactions, setTransactions] = useState(() => localDb.getTransactions());
 
   useEffect(() => {
     const unsubscribe = localDb.subscribe(() => {
+      setUserProfile(toUserProfile(localDb.getCurrentUser()));
       setTasks(localDb.getTasks());
       setEvents(localDb.getEvents());
       setTransactions(localDb.getTransactions());
@@ -74,6 +95,7 @@ export function useProfileData() {
           text: 'Log Out',
           style: 'destructive',
           onPress: () => {
+            localDb.clearCurrentUser();
             router.replace('/(auth)/login/login');
           },
         },
