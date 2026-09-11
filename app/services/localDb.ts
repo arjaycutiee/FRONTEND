@@ -1,5 +1,30 @@
-// Central In-Memory Database Service for GabAi
-// Syncs data between Dashboard, Tasks, Calendar, Expenses, and the Virtual Assistant.
+/**
+ * localDb — central in-memory data store for GabAi.
+ *
+ * Every tab (Tasks, Notes, Calendar, Expenses, Dashboard, Profile, Assistant)
+ * reads from and writes to this single store, then re-renders through
+ * `subscribe()` whenever any collection changes.
+ *
+ * Domain types that belong to a single feature (CalendarEvent, Transaction)
+ * live in that feature's `types/` folder and are re-used here; Task, SubTask
+ * and Note are owned by this module because several features share them.
+ *
+ * The store starts EMPTY. There is no hardcoded default account: the current
+ * user is set by the auth flow (login / register) via `setCurrentUser`, and
+ * cleared on logout via `clearCurrentUser`.
+ */
+
+import type { CalendarEvent } from '@/app/(tabs)/calendar/types';
+import type { Transaction } from '@/app/(tabs)/expenses/types';
+
+// ---------------------------------------------------------------------------
+// Shared domain types
+// ---------------------------------------------------------------------------
+
+export type TaskCategory = 'Academic' | 'Personal' | 'Projects' | 'Exams' | 'Activities';
+export type TaskPriority = 'High' | 'Medium' | 'Low';
+export type TaskDifficulty = 'Hard' | 'Medium' | 'Easy';
+export type TaskRepeat = 'None' | 'Daily' | 'Weekly' | 'Monthly';
 
 export interface SubTask {
   id: string;
@@ -12,708 +37,232 @@ export interface Task {
   title: string;
   description: string;
   subject: string;
-  category: 'Academic' | 'Personal' | 'Projects' | 'Exams' | 'Activities';
-  priority: 'High' | 'Medium' | 'Low';
-  difficulty: 'Hard' | 'Medium' | 'Easy';
-  duration: number; // in hours
-  dueDate: string; // YYYY-MM-DD
-  dueTime: string; // HH:MM
+  category: TaskCategory;
+  priority: TaskPriority;
+  difficulty: TaskDifficulty;
+  /** Estimated hours. */
+  duration: number;
+  /** YYYY-MM-DD */
+  dueDate: string;
+  /** HH:MM */
+  dueTime: string;
   completed: boolean;
   hasReminder: boolean;
-  repeat: 'None' | 'Daily' | 'Weekly' | 'Monthly';
+  repeat: TaskRepeat;
   isPinned: boolean;
   isFavorite: boolean;
   attachments: number;
   subTasks: SubTask[];
+  /** Epoch ms */
   createdAt: number;
-}
-
-export interface Transaction {
-  id: string;
-  title: string;
-  amount: number;
-  category: string;
-  date: string; // "Today", "Yesterday", or "YYYY-MM-DD"
-  type: 'income' | 'expense';
-}
-
-export interface ChecklistItem {
-  id: string;
-  text: string;
-  completed: boolean;
 }
 
 export interface Note {
   id: string;
   title: string;
   content: string;
-  category: 'School' | 'Personal' | 'Projects' | 'Review' | 'Ideas' | 'Study Note' | string;
+  category: string;
   tags: string[];
   isFavorite: boolean;
   isPinned: boolean;
   isArchived: boolean;
+  /** Epoch ms */
   createdAt: number;
+  /** Epoch ms */
   updatedAt: number;
-  colorAccent?: string;
 }
 
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  category: 'Assignment' | 'Exam' | 'Class' | 'Meeting' | 'Personal';
-  date: string; // YYYY-MM-DD
-  time: string; // HH:MM
-  duration: number; // minutes
-  priority: 'High' | 'Medium' | 'Low';
-  isAllDay: boolean;
-  hasReminder: boolean;
-  reminderTime: string;
-  isRecurring: boolean;
-  recurrenceRule: string; // "Daily" | "Weekly" | ""
-  progress: number; // 0 - 100
-  checklist: ChecklistItem[];
-  description?: string;
-  isAIScheduled?: boolean;
+/** The signed-in account, as returned by the backend after login/register. */
+export interface CurrentUser {
+  id?: string;
+  name: string;
+  email: string;
+  course?: string;
 }
 
-// Initial Mock Data mirroring screens
-const INITIAL_TASKS: Task[] = [
-  {
-    id: '1',
-    title: 'Submit Capstone Draft (Part 2)',
-    description: 'Revise methodology & conceptual framework based on panel guidelines.',
-    subject: 'Capstone Paper',
-    category: 'Academic',
-    priority: 'High',
-    difficulty: 'Hard',
-    duration: 3.5,
-    dueDate: '2026-07-26', // Today
-    dueTime: '23:59',
-    completed: false,
-    hasReminder: true,
-    repeat: 'None',
-    isPinned: true,
-    isFavorite: true,
-    attachments: 2,
-    subTasks: [
-      { id: '1-1', title: 'Revise Methodology', completed: false },
-      { id: '1-2', title: 'Finalize Abstract', completed: false },
-    ],
-    createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
-  },
-  {
-    id: '2',
-    title: 'Review Chapter 5-7 Economics',
-    description: 'Supply chain management and taxation formulas practice.',
-    subject: 'Economics with Taxation',
-    category: 'Exams',
-    priority: 'High',
-    difficulty: 'Hard',
-    duration: 2.0,
-    dueDate: '2026-07-28', // In 2 days
-    dueTime: '13:00',
-    completed: false,
-    hasReminder: false,
-    repeat: 'None',
-    isPinned: false,
-    isFavorite: false,
-    attachments: 0,
-    subTasks: [],
-    createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-  },
-  {
-    id: '3',
-    title: 'Pitch Deck Slides Refinement',
-    description: 'Add market sizes and detailed financial plans.',
-    subject: 'Technopreneurship',
-    category: 'Projects',
-    priority: 'Medium',
-    difficulty: 'Medium',
-    duration: 1.5,
-    dueDate: '2026-07-27', // Tomorrow
-    dueTime: '17:00',
-    completed: false,
-    hasReminder: true,
-    repeat: 'None',
-    isPinned: true,
-    isFavorite: false,
-    attachments: 1,
-    subTasks: [
-      { id: '3-1', title: 'Market Size Chart', completed: true },
-      { id: '3-2', title: 'Financials Review', completed: false },
-    ],
-    createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
-  },
-  {
-    id: '4',
-    title: 'Daily Leg Workout Routine',
-    description: 'Squats, deadlifts, and calves exercises.',
-    subject: 'General',
-    category: 'Personal',
-    priority: 'Low',
-    difficulty: 'Easy',
-    duration: 1.0,
-    dueDate: '2026-07-26', // Today
-    dueTime: '18:00',
-    completed: false,
-    hasReminder: false,
-    repeat: 'Daily',
-    isPinned: false,
-    isFavorite: true,
-    attachments: 0,
-    subTasks: [],
-    createdAt: Date.now(),
-  },
-  {
-    id: '5',
-    title: 'Utilitarianism Essay Review',
-    description: 'Review notes on moral philosophy chapters.',
-    subject: 'Ethics',
-    category: 'Activities',
-    priority: 'Low',
-    difficulty: 'Easy',
-    duration: 1.2,
-    dueDate: '2026-07-25', // Yesterday (Overdue)
-    dueTime: '23:59',
-    completed: false,
-    hasReminder: false,
-    repeat: 'None',
-    isPinned: false,
-    isFavorite: false,
-    attachments: 0,
-    subTasks: [],
-    createdAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
-  },
-  {
-    id: '6',
-    title: 'Database Schema Normalization',
-    description: 'Draw 3NF mapping schema.',
-    subject: 'Capstone Paper',
-    category: 'Projects',
-    priority: 'Medium',
-    difficulty: 'Medium',
-    duration: 2.5,
-    dueDate: '2026-07-20',
-    dueTime: '10:00',
-    completed: true,
-    hasReminder: false,
-    repeat: 'None',
-    isPinned: false,
-    isFavorite: false,
-    attachments: 1,
-    subTasks: [],
-    createdAt: Date.now() - 8 * 24 * 60 * 60 * 1000,
-  },
-];
+export type { CalendarEvent, Transaction };
 
-const INITIAL_TRANSACTIONS: Transaction[] = [
-  { id: '1', title: 'Weekly Allowance', amount: 1500.0, category: 'Allowance', date: 'Today', type: 'income' },
-  { id: '2', title: 'Lunch at Canteen', amount: 120.0, category: 'Food', date: 'Today', type: 'expense' },
-  { id: '3', title: 'Bus Fare to School', amount: 35.0, category: 'Transport', date: 'Today', type: 'expense' },
-  { id: '4', title: 'Part-time Tutoring Job', amount: 800.0, category: 'Job', date: 'Yesterday', type: 'income' },
-  { id: '5', title: 'Notebooks & Pens', amount: 150.0, category: 'Academics', date: 'Yesterday', type: 'expense' },
-];
+/** Input shape for `addTask` — id and createdAt are generated. */
+export type NewTask = Omit<Task, 'id' | 'createdAt'>;
+/** Input shape for `addNote` — id and timestamps are generated. */
+export type NewNote = Omit<Note, 'id' | 'createdAt' | 'updatedAt'> & Partial<Pick<Note, 'tags'>>;
+/** Input shape for `addEvent` — id is generated. */
+export type NewEvent = Omit<CalendarEvent, 'id'>;
+/** Input shape for `addTransaction` — id is generated. */
+export type NewTransaction = Omit<Transaction, 'id'>;
 
-const INITIAL_EVENTS: CalendarEvent[] = [
-  {
-    id: '1',
-    title: 'Algorithms Final Exam',
-    category: 'Exam',
-    date: '2026-07-26', // Today
-    time: '09:00',
-    duration: 180,
-    priority: 'High',
-    isAllDay: false,
-    hasReminder: true,
-    reminderTime: '30 minutes before',
-    isRecurring: false,
-    recurrenceRule: '',
-    progress: 0,
-    checklist: [
-      { id: '1-1', text: 'Review Dynamic Programming', completed: false },
-      { id: '1-2', text: 'Solve Graph traversal problems', completed: false },
-      { id: '1-3', text: 'Read lecture notes on Greedy algorithms', completed: false },
-    ],
-    description: 'Final exam worth 40% of the grade. Topics: DP, Graphs, Network flow.',
-  },
-  {
-    id: '2',
-    title: 'Database Schema Design',
-    category: 'Assignment',
-    date: '2026-07-28',
-    time: '23:59',
-    duration: 60,
-    priority: 'High',
-    isAllDay: true,
-    hasReminder: true,
-    reminderTime: '1 day before',
-    isRecurring: false,
-    recurrenceRule: '',
-    progress: 33,
-    checklist: [
-      { id: '2-1', text: 'E-R Diagram design', completed: true },
-      { id: '2-2', text: 'Write SQL query DDL script', completed: false },
-      { id: '2-3', text: 'Perform 3NF Normalization schemas', completed: false },
-    ],
-    description: 'Design and normalize a database schema for an online bookstore application.',
-  },
-  {
-    id: '3',
-    title: 'AI & Machine Learning Seminar',
-    category: 'Class',
-    date: '2026-07-26', // Today
-    time: '14:00',
-    duration: 90,
-    priority: 'Medium',
-    isAllDay: false,
-    hasReminder: false,
-    reminderTime: '',
-    isRecurring: true,
-    recurrenceRule: 'Weekly',
-    progress: 100,
-    checklist: [],
-    description: 'Weekly guest seminar on cutting-edge neural architectures and transformers.',
-  },
-  {
-    id: '4',
-    title: 'Capstone Project Sync Meeting',
-    category: 'Meeting',
-    date: '2026-07-26', // Today
-    time: '16:00',
-    duration: 60,
-    priority: 'Medium',
-    isAllDay: false,
-    hasReminder: true,
-    reminderTime: '15 minutes before',
-    isRecurring: false,
-    recurrenceRule: '',
-    progress: 0,
-    checklist: [
-      { id: '4-1', text: 'Draft backend schema specs', completed: false },
-      { id: '4-2', text: 'Coordinate frontend layouts with PM', completed: false },
-    ],
-    description: 'Check-in on backend integrations and sync on upcoming milestone presentation.',
-  },
-  {
-    id: '5',
-    title: 'Personal Gym Workout',
-    category: 'Personal',
-    date: '2026-07-25', // Yesterday
-    time: '18:00',
-    duration: 90,
-    priority: 'Low',
-    isAllDay: false,
-    hasReminder: false,
-    reminderTime: '',
-    isRecurring: true,
-    recurrenceRule: 'Daily',
-    progress: 0,
-    checklist: [],
-    description: 'Leg day workout routine focusing on squats and deadlifts.',
-  },
-];
+type Listener = () => void;
 
-const INITIAL_NOTES: Note[] = [
-  {
-    id: 'note-1',
-    title: 'Capstone Architecture & Core Tech Stack',
-    content: `# Capstone System Architecture
+// ---------------------------------------------------------------------------
+// Store
+// ---------------------------------------------------------------------------
 
-## 1. Overview
-The GabAI system is built as an offline-first student productivity suite designed for seamless multi-device continuity and intelligent schedule tracking.
+class LocalDb {
+  private currentUser: CurrentUser | null = null;
+  private tasks: Task[] = [];
+  private notes: Note[] = [];
+  private events: CalendarEvent[] = [];
+  private transactions: Transaction[] = [];
+  private listeners = new Set<Listener>();
 
-## 2. Core Modules
-- **Dynamic Task Engine**: Priority-weighted scheduling with pomodoro focus integration
-- **Smart Calendar**: Academic sync with automated conflict detection
-- **Note-Taking Workspace**: Structured markdown editor with direct task/calendar converters
-- **Expense Tracker**: Student budget tracking with category analytics
+  // ---- subscriptions -----------------------------------------------------
 
-## 3. Technology Stack
-\`\`\`typescript
-Frontend: React Native + Expo Router v54 + Reanimated
-State Layer: Central Reactive In-Memory Cache
-Styling: GabAI Modern Design System (#A97C50)
-\`\`\`
-
-## 4. Next Milestones
-- [x] Finalize database schema
-- [ ] Connect offline sync engine
-- [ ] Test mobile presentation deck`,
-    category: 'Projects',
-    tags: ['#thesis', '#architecture', '#expo', '#react-native'],
-    isFavorite: true,
-    isPinned: true,
-    isArchived: false,
-    createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
-    updatedAt: Date.now() - 35 * 60 * 1000,
-    colorAccent: '#A97C50',
-  },
-  {
-    id: 'note-2',
-    title: 'Economics with Taxation - Key Formulas & Principles',
-    content: `# Economics & Taxation Study Sheet
-
-> "Taxation is the inherent power of the sovereign exercised through the legislature."
-
-### 1. Inelastic vs Elastic Demand Formulas
-- **Price Elasticity of Demand (PED)**: 
-  \`PED = (% Change in Qty Demanded) / (% Change in Price)\`
-- If \`|PED| > 1\` => Elastic
-- If \`|PED| < 1\` => Inelastic
-
-### 2. Value Added Tax (VAT) Calculation
-- **Output Tax** = Gross Sales * 12%
-- **Input Tax** = Purchase Cost * 12%
-- **VAT Payable** = Output Tax - Input Tax
-
-### 3. Exam Reminders:
-- Don't forget exemptions under Section 109 of the NIRC.
-- Prepare calculator for bracket rate computations.`,
-    category: 'Review',
-    tags: ['#exam', '#formulas', '#economics', '#midterms'],
-    isFavorite: false,
-    isPinned: true,
-    isArchived: false,
-    createdAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
-    updatedAt: Date.now() - 2 * 60 * 60 * 1000,
-    colorAccent: '#F59E0B',
-  },
-  {
-    id: 'note-3',
-    title: 'Database Normalization Cheatsheet (1NF to BCNF)',
-    content: `# Database Normalization Guide
-
-### First Normal Form (1NF)
-- Eliminate repeating groups in individual tables.
-- Create a separate table for each set of related data.
-- Identify each set of related data with a primary key.
-
-### Second Normal Form (2NF)
-- Must already be in 1NF.
-- Remove partial functional dependencies (attributes must depend on the whole composite PK).
-
-### Third Normal Form (3NF)
-- Must already be in 2NF.
-- Remove transitive dependencies (non-key attributes must NOT depend on other non-key attributes).
-
-### Boyce-Codd Normal Form (BCNF)
-- A stricter version of 3NF where every determinant must be a candidate key.`,
-    category: 'Study Note',
-    tags: ['#cs301', '#databases', '#sql', '#normalization'],
-    isFavorite: true,
-    isPinned: false,
-    isArchived: false,
-    createdAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
-    updatedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
-    colorAccent: '#10B981',
-  },
-  {
-    id: 'note-4',
-    title: 'Technopreneurship Pitch Deck Outline',
-    content: `# Technopreneurship 10-Slide Pitch Structure
-
-1. **Problem Statement**: Students struggle with fragmented apps (notes, tasks, calendar, budget).
-2. **Solution**: GabAI - The Unified AI-Powered Student Productivity Suite.
-3. **Market Opportunity**: 3.5M Higher Education students in the region.
-4. **Value Proposition**: Offline-first, distraction-free, intelligent task conversion.
-5. **Business Model**: Freemium model + Campus Enterprise Tier.
-6. **Go-to-Market Strategy**: Student Ambassador programs & university partnerships.`,
-    category: 'School',
-    tags: ['#startup', '#pitch', '#slides', '#business'],
-    isFavorite: false,
-    isPinned: false,
-    isArchived: false,
-    createdAt: Date.now() - 10 * 24 * 60 * 60 * 1000,
-    updatedAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    colorAccent: '#6366F1',
-  },
-  {
-    id: 'note-5',
-    title: 'Brainstorm: Mobile Offline-Sync Architecture Ideas',
-    content: `# Offline-Sync Design Explorations
-
-### Concept:
-Use client-side operational timestamps + CRDT-inspired lightweight merge resolution.
-
-- Cache all edits immediately in memory / local device store.
-- Assign monotonic UUIDs and version counters to each note block.
-- On reconnection, diff modified timestamps and apply 3-way merge.
-
-### Things to test:
-- Conflict handling when edited offline on both phone and laptop.
-- Attachment serialization limits.`,
-    category: 'Ideas',
-    tags: ['#ideas', '#sync', '#architecture', '#offline-first'],
-    isFavorite: true,
-    isPinned: false,
-    isArchived: false,
-    createdAt: Date.now() - 12 * 24 * 60 * 60 * 1000,
-    updatedAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
-    colorAccent: '#EC4899',
-  },
-  {
-    id: 'note-6',
-    title: 'Weekly Study Routine & Productivity Goals',
-    content: `# Term 1 Habit Tracker & Routine
-
-- **Morning Focus Block**: 8:00 AM - 10:00 AM (Algorithm drills)
-- **Class Schedules**: 1:00 PM - 5:00 PM
-- **Evening Review & Notes Polish**: 7:30 PM - 9:00 PM
-- **Cap on Social Media**: Max 45 mins/day
-- **Exercise**: Leg workout Tuesdays & Thursdays`,
-    category: 'Personal',
-    tags: ['#routine', '#habits', '#goals', '#health'],
-    isFavorite: false,
-    isPinned: false,
-    isArchived: false,
-    createdAt: Date.now() - 14 * 24 * 60 * 60 * 1000,
-    updatedAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
-    colorAccent: '#14B8A6',
-  },
-];
-
-class LocalDatabase {
-  private tasks: Task[] = [...INITIAL_TASKS];
-  private transactions: Transaction[] = [...INITIAL_TRANSACTIONS];
-  private events: CalendarEvent[] = [...INITIAL_EVENTS];
-  private notes: Note[] = [...INITIAL_NOTES];
-  private listeners: (() => void)[] = [];
-
-  // Subscribe to changes
-  subscribe(listener: () => void): () => void {
-    this.listeners.push(listener);
+  /** Register a change listener. Returns an unsubscribe function. */
+  subscribe(listener: Listener): () => void {
+    this.listeners.add(listener);
     return () => {
-      this.listeners = this.listeners.filter((l) => l !== listener);
+      this.listeners.delete(listener);
     };
   }
 
-  private notify() {
-    this.listeners.forEach((listener) => {
-      try {
-        listener();
-      } catch (err) {
-        console.error('Error in subscriber:', err);
-      }
-    });
+  private notify(): void {
+    this.listeners.forEach((l) => l());
   }
 
-  // Tasks API
+  private generateId(prefix: string): string {
+    return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+  }
+
+  // ---- current user ------------------------------------------------------
+
+  getCurrentUser(): CurrentUser | null {
+    return this.currentUser;
+  }
+
+  /** Called by the auth flow after a successful login / registration. */
+  setCurrentUser(user: CurrentUser): void {
+    this.currentUser = user;
+    this.notify();
+  }
+
+  /** Called on logout. Also wipes the per-user collections. */
+  clearCurrentUser(): void {
+    this.currentUser = null;
+    this.tasks = [];
+    this.notes = [];
+    this.events = [];
+    this.transactions = [];
+    this.notify();
+  }
+
+  // ---- tasks -------------------------------------------------------------
+
   getTasks(): Task[] {
     return this.tasks;
   }
 
-  setTasks(tasks: Task[]) {
+  setTasks(tasks: Task[]): void {
     this.tasks = tasks;
     this.notify();
   }
 
-  addTask(task: Omit<Task, 'id' | 'createdAt'>): Task {
-    const newTask: Task = {
-      ...task,
-      id: Date.now().toString(),
-      createdAt: Date.now(),
-    };
-    this.tasks = [newTask, ...this.tasks];
+  addTask(input: NewTask): Task {
+    const task: Task = { ...input, id: this.generateId('task'), createdAt: Date.now() };
+    this.tasks = [task, ...this.tasks];
     this.notify();
-    return newTask;
+    return task;
   }
 
-  updateTask(taskId: string, updates: Partial<Task>) {
-    this.tasks = this.tasks.map((task) =>
-      task.id === taskId ? { ...task, ...updates } : task
-    );
+  updateTask(id: string, patch: Partial<Omit<Task, 'id'>>): void {
+    this.tasks = this.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t));
     this.notify();
   }
 
-  toggleTaskCompleted(taskId: string) {
-    this.tasks = this.tasks.map((task) =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    );
+  deleteTask(id: string): void {
+    this.tasks = this.tasks.filter((t) => t.id !== id);
     this.notify();
   }
 
-  // Transactions API
-  getTransactions(): Transaction[] {
-    return this.transactions;
-  }
-
-  setTransactions(transactions: Transaction[]) {
-    this.transactions = transactions;
+  toggleTaskCompleted(id: string): void {
+    this.tasks = this.tasks.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t));
     this.notify();
   }
 
-  addTransaction(tx: Omit<Transaction, 'id'>): Transaction {
-    const newTx: Transaction = {
-      ...tx,
-      id: Date.now().toString(),
-    };
-    this.transactions = [newTx, ...this.transactions];
-    this.notify();
-    return newTx;
-  }
+  // ---- notes -------------------------------------------------------------
 
-  // Calendar Events API
-  getEvents(): CalendarEvent[] {
-    return this.events;
-  }
-
-  setEvents(events: CalendarEvent[]) {
-    this.events = events;
-    this.notify();
-  }
-
-  addEvent(event: Omit<CalendarEvent, 'id'>): CalendarEvent {
-    const newEvent: CalendarEvent = {
-      ...event,
-      id: Date.now().toString(),
-    };
-    this.events = [newEvent, ...this.events];
-    this.notify();
-    return newEvent;
-  }
-
-  // Notes API
   getNotes(): Note[] {
     return this.notes;
   }
 
-  setNotes(notes: Note[]) {
+  setNotes(notes: Note[]): void {
     this.notes = notes;
     this.notify();
   }
 
-  addNote(note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>): Note {
-    const now = Date.now();
-    const newNote: Note = {
-      ...note,
-      id: 'note-' + now.toString(),
-      createdAt: now,
-      updatedAt: now,
+  addNote(input: NewNote): Note {
+    const ts = Date.now();
+    const note: Note = {
+      ...input,
+      tags: input.tags ?? [],
+      id: this.generateId('note'),
+      createdAt: ts,
+      updatedAt: ts,
     };
-    this.notes = [newNote, ...this.notes];
+    this.notes = [note, ...this.notes];
     this.notify();
-    return newNote;
+    return note;
   }
 
-  updateNote(noteId: string, updates: Partial<Note>): Note | undefined {
-    let updatedNote: Note | undefined;
-    this.notes = this.notes.map((note) => {
-      if (note.id === noteId) {
-        updatedNote = {
-          ...note,
-          ...updates,
-          updatedAt: Date.now(),
-        };
-        return updatedNote;
-      }
-      return note;
-    });
-    this.notify();
-    return updatedNote;
-  }
-
-  deleteNote(noteId: string): boolean {
-    const initialLen = this.notes.length;
-    this.notes = this.notes.filter((note) => note.id !== noteId);
-    const deleted = this.notes.length < initialLen;
-    if (deleted) {
-      this.notify();
-    }
-    return deleted;
-  }
-
-  toggleNoteFavorite(noteId: string) {
-    this.notes = this.notes.map((note) =>
-      note.id === noteId ? { ...note, isFavorite: !note.isFavorite, updatedAt: Date.now() } : note
-    );
+  updateNote(id: string, patch: Partial<Omit<Note, 'id' | 'createdAt'>>): void {
+    this.notes = this.notes.map((n) => (n.id === id ? { ...n, ...patch, updatedAt: Date.now() } : n));
     this.notify();
   }
 
-  toggleNotePinned(noteId: string) {
-    this.notes = this.notes.map((note) =>
-      note.id === noteId ? { ...note, isPinned: !note.isPinned, updatedAt: Date.now() } : note
-    );
+  deleteNote(id: string): void {
+    this.notes = this.notes.filter((n) => n.id !== id);
     this.notify();
   }
 
-  toggleNoteArchived(noteId: string) {
-    this.notes = this.notes.map((note) =>
-      note.id === noteId ? { ...note, isArchived: !note.isArchived, updatedAt: Date.now() } : note
-    );
+  // ---- calendar events ---------------------------------------------------
+
+  getEvents(): CalendarEvent[] {
+    return this.events;
+  }
+
+  setEvents(events: CalendarEvent[]): void {
+    this.events = events;
     this.notify();
   }
 
-  // GabAI Integration Helpers
-  convertNoteToTask(noteId: string, customOptions?: Partial<Task>): Task | null {
-    const note = this.notes.find((n) => n.id === noteId);
-    if (!note) return null;
-
-    // Map category
-    let taskCategory: Task['category'] = 'Academic';
-    if (note.category === 'Personal') taskCategory = 'Personal';
-    else if (note.category === 'Projects') taskCategory = 'Projects';
-    else if (note.category === 'Review') taskCategory = 'Exams';
-    else if (note.category === 'Ideas') taskCategory = 'Activities';
-
-    // Format date string for today/tomorrow
-    const d = new Date();
-    const dueDateStr = d.toISOString().split('T')[0];
-
-    const newTask = this.addTask({
-      title: customOptions?.title || note.title,
-      description: customOptions?.description || `Converted from Note "${note.title}":\n\n` + (note.content.length > 200 ? note.content.substring(0, 197) + '...' : note.content),
-      subject: customOptions?.subject || (note.tags[0] ? note.tags[0].replace('#', '') : 'General'),
-      category: customOptions?.category || taskCategory,
-      priority: customOptions?.priority || (note.isPinned ? 'High' : 'Medium'),
-      difficulty: customOptions?.difficulty || 'Medium',
-      duration: customOptions?.duration || 1.5,
-      dueDate: customOptions?.dueDate || dueDateStr,
-      dueTime: customOptions?.dueTime || '18:00',
-      completed: false,
-      hasReminder: customOptions?.hasReminder !== undefined ? customOptions.hasReminder : true,
-      repeat: customOptions?.repeat || 'None',
-      isPinned: note.isPinned,
-      isFavorite: note.isFavorite,
-      attachments: 1,
-      subTasks: [],
-    });
-
-    return newTask;
+  addEvent(input: NewEvent): CalendarEvent {
+    const event: CalendarEvent = { ...input, id: this.generateId('event') };
+    this.events = [...this.events, event];
+    this.notify();
+    return event;
   }
 
-  linkNoteToSchedule(noteId: string, eventData?: Partial<CalendarEvent>): CalendarEvent | null {
-    const note = this.notes.find((n) => n.id === noteId);
-    if (!note) return null;
+  updateEvent(id: string, patch: Partial<Omit<CalendarEvent, 'id'>>): void {
+    this.events = this.events.map((e) => (e.id === id ? { ...e, ...patch } : e));
+    this.notify();
+  }
 
-    const d = new Date();
-    const dateStr = d.toISOString().split('T')[0];
+  deleteEvent(id: string): void {
+    this.events = this.events.filter((e) => e.id !== id);
+    this.notify();
+  }
 
-    let eventCategory: CalendarEvent['category'] = 'Personal';
-    if (note.category === 'School' || note.category === 'Study Note') eventCategory = 'Class';
-    else if (note.category === 'Review') eventCategory = 'Exam';
-    else if (note.category === 'Projects') eventCategory = 'Assignment';
-    else if (note.category === 'Personal') eventCategory = 'Personal';
+  // ---- transactions ------------------------------------------------------
 
-    const newEvent = this.addEvent({
-      title: eventData?.title || `Study: ${note.title}`,
-      category: eventData?.category || eventCategory,
-      date: eventData?.date || dateStr,
-      time: eventData?.time || '15:00',
-      duration: eventData?.duration || 60,
-      priority: eventData?.priority || (note.isPinned ? 'High' : 'Medium'),
-      isAllDay: false,
-      hasReminder: true,
-      reminderTime: '15 minutes before',
-      isRecurring: false,
-      recurrenceRule: '',
-      progress: 0,
-      checklist: [],
-      description: `Note reference: "${note.title}". ${note.content.substring(0, 150)}...`,
-    });
+  getTransactions(): Transaction[] {
+    return this.transactions;
+  }
 
-    return newEvent;
+  setTransactions(transactions: Transaction[]): void {
+    this.transactions = transactions;
+    this.notify();
+  }
+
+  addTransaction(input: NewTransaction): Transaction {
+    const tx: Transaction = { ...input, id: this.generateId('tx') };
+    this.transactions = [tx, ...this.transactions];
+    this.notify();
+    return tx;
+  }
+
+  deleteTransaction(id: string): void {
+    this.transactions = this.transactions.filter((t) => t.id !== id);
+    this.notify();
   }
 }
 
-export const localDb = new LocalDatabase();
-export default localDb;
+export const localDb = new LocalDb();

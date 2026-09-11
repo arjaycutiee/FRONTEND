@@ -2,7 +2,19 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import api from '@/app/services/api';
+import { localDb } from '@/app/services/localDb';
 import { validateLoginForm } from '../utils';
+
+/** Pull the account fields out of whatever shape the backend returns. */
+function extractUser(data: any, fallbackEmail: string) {
+  const u = data?.user ?? data?.data?.user ?? data?.data ?? data ?? {};
+  return {
+    id: u.id ?? u._id ?? u.userId,
+    name: u.fullName ?? u.name ?? u.username ?? fallbackEmail.split('@')[0],
+    email: u.email ?? fallbackEmail,
+    course: u.course ?? u.program,
+  };
+}
 
 export function useLogin() {
   const router = useRouter();
@@ -30,10 +42,13 @@ export function useLogin() {
 
     setIsLoading(true);
     try {
-      await api.post('/api/auth/login', {
+      const response = await api.post('/api/auth/login', {
         email: email,
         password: password,
       });
+
+      // Make the signed-in account the app's current user (no hardcoded default).
+      localDb.setCurrentUser(extractUser(response.data, email.trim()));
 
       setIsLoading(false);
       router.replace('/(tabs)/dashboard/dashboard');
@@ -54,6 +69,8 @@ export function useLogin() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
+      // Placeholder until real Google auth is wired up.
+      localDb.setCurrentUser({ name: 'Google User', email: 'google-user@gabai.edu.ph' });
       router.replace('/(tabs)/dashboard/dashboard');
     }, 1200);
   };
