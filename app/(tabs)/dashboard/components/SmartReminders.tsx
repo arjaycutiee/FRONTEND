@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -11,23 +12,37 @@ interface SmartRemindersProps {
 export default function SmartReminders({
   warningOrange,
   textPrimary,
-  reminderText = 'Capstone draft is due today. Make sure to review guidelines!',
+  reminderText,
 }: SmartRemindersProps) {
+  // Don't show the reminder card when there is no reminder
+  if (!reminderText?.trim()) {
+    return null;
+  }
+
   return (
     <View
       style={[
         styles.smartReminderCard,
-        { backgroundColor: warningOrange + '10', borderColor: warningOrange + '30' },
+        {
+          backgroundColor: warningOrange + '10',
+          borderColor: warningOrange + '30',
+        },
       ]}
     >
       <Feather
         name="alert-circle"
         size={18}
         color={warningOrange}
-        style={{ marginRight: 10 }}
+        style={styles.icon}
       />
+
       <View style={styles.textContainer}>
-        <Text style={[styles.reminderText, { color: textPrimary }]}>
+        <Text
+          style={[
+            styles.reminderText,
+            { color: textPrimary },
+          ]}
+        >
           {reminderText}
         </Text>
       </View>
@@ -44,12 +59,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+
+  icon: {
+    marginRight: 10,
+  },
+
   textContainer: {
     flex: 1,
   },
+
   reminderText: {
     fontSize: 12.5,
     fontWeight: '500',
     lineHeight: 16,
   },
 });
+

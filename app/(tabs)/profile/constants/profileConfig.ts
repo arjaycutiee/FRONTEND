@@ -1,3 +1,4 @@
+
 import { UserProfile, SettingSection } from '../types';
 
 export const DEFAULT_USER_PROFILE: UserProfile = {
@@ -40,6 +41,12 @@ export const PROFILE_SECTIONS: SettingSection[] = [
         id: 'privacy',
         title: 'Privacy & Security',
         icon: 'lock',
+        iconType: 'feather',
+      },
+      {
+        id: 'appearance',
+        title: 'Appearance',
+        icon: 'moon',
         iconType: 'feather',
       },
     ],

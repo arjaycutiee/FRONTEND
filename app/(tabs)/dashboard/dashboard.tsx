@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+
+import { useAppTheme } from '@/app/context/ThemeContext';
 import { useDrawer } from '@/app/(tabs)/_layout';
 
 import {
@@ -20,29 +22,56 @@ import {
   Footer,
   DashboardTask,
 } from './components';
+
 import { useDashboardData } from './hooks/useDashboardData';
-import { getPriorityColor, getTimelineIcon } from './utils/dashboardHelpers';
+import {
+  getPriorityColor,
+  getTimelineIcon,
+} from './utils/dashboardHelpers';
+
 import { dashboardStyles as styles } from './styles/dashboard.styles';
 
 export default function DashboardScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
+  /*
+   * GabAi Theme
+   *
+   * Uses the selected theme from ThemeContext:
+   * System / Light / Dark
+   */
+  const { colorScheme } = useAppTheme();
+
   const isDark = colorScheme === 'dark';
 
-  // Theme Colors
-  const primaryBrown = '#A97C50'; // GabAI Brown
+  // GabAi Theme Colors
+  const primaryBrown = '#A97C50';
   const successGreen = '#10B981';
   const errorRed = '#EF4444';
   const warningOrange = '#F59E0B';
-  const bgTheme = isDark ? '#121212' : '#FFFFFF';
-  const textPrimary = isDark ? '#ECEDEE' : '#11181C';
-  const textSecondary = isDark ? '#9BA1A6' : '#666666';
-  const cardBg = isDark ? '#1E1E1E' : '#F8FAFC';
-  const borderCol = isDark ? '#2E2E2E' : '#E2E8F0';
+
+  const bgTheme = isDark
+    ? '#121212'
+    : '#FFFFFF';
+
+  const textPrimary = isDark
+    ? '#ECEDEE'
+    : '#11181C';
+
+  const textSecondary = isDark
+    ? '#9BA1A6'
+    : '#666666';
+
+  const cardBg = isDark
+    ? '#1E1E1E'
+    : '#F8FAFC';
+
+  const borderCol = isDark
+    ? '#2E2E2E'
+    : '#E2E8F0';
 
   // Drawer
   const { openDrawer } = useDrawer();
 
-  // Dashboard Data Hook
+  // Dashboard Data
   const {
     greeting,
     focusTasks,
@@ -54,19 +83,32 @@ export default function DashboardScreen() {
     handleToggleComplete,
   } = useDashboardData();
 
-  const priorityColorHelper = (pr: DashboardTask['priority']) =>
-    getPriorityColor(pr, { errorRed, warningOrange, successGreen });
+  // Priority Color Helper
+  const priorityColorHelper = (
+    pr: DashboardTask['priority']
+  ) =>
+    getPriorityColor(pr, {
+      errorRed,
+      warningOrange,
+      successGreen,
+    });
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: bgTheme }]} edges={['top']}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: bgTheme,
+        },
+      ]}
+      edges={['top']}
+    >
       {/* 1. Header Bar */}
       <DashboardHeader
-        greeting={greeting}
         onOpenDrawer={openDrawer}
         textPrimary={textPrimary}
         textSecondary={textSecondary}
       />
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -79,20 +121,26 @@ export default function DashboardScreen() {
         }
       >
         {/* 2. Quick Actions */}
-        <QuickActions primaryBrown={primaryBrown} borderCol={borderCol} />
+        <QuickActions
+          primaryBrown={primaryBrown}
+          borderCol={borderCol}
+        />
 
         {/* 3. Smart Reminders */}
-        <SmartReminders warningOrange={warningOrange} textPrimary={textPrimary} />
+        <SmartReminders
+          warningOrange={warningOrange}
+          textPrimary={textPrimary}
+        />
 
         {/* 4. Academic Pressure Widget */}
         <AcademicPressure
-          cardBg={cardBg}
-          borderCol={borderCol}
-          textPrimary={textPrimary}
-          textSecondary={textSecondary}
-          errorRed={errorRed}
-          primaryBrown={primaryBrown}
-        />
+  cardBg={cardBg}
+  borderCol={borderCol}
+  textPrimary={textPrimary}
+  textSecondary={textSecondary}
+  errorRed={errorRed}
+  primaryBrown={primaryBrown}
+/>
 
         {/* 5. Today's Focus Card */}
         <TodaysFocus
@@ -106,7 +154,7 @@ export default function DashboardScreen() {
           primaryBrown={primaryBrown}
         />
 
-        {/* 6. Quick Overview Stats Grid */}
+        {/* 6. Quick Overview Stats */}
         <QuickOverview
           cardBg={cardBg}
           borderCol={borderCol}
@@ -129,7 +177,7 @@ export default function DashboardScreen() {
           primaryBrown={primaryBrown}
         />
 
-        {/* 8. Focus Session Compact Widget */}
+        {/* 8. Focus Session */}
         <FocusSessionWidget
           cardBg={cardBg}
           borderCol={borderCol}
@@ -168,7 +216,7 @@ export default function DashboardScreen() {
           primaryBrown={primaryBrown}
         />
 
-        {/* 12. Recent Activity Stream */}
+        {/* 12. Recent Activity */}
         <RecentActivity
           cardBg={cardBg}
           borderCol={borderCol}
@@ -177,7 +225,9 @@ export default function DashboardScreen() {
         />
 
         {/* 13. Footer */}
-        <Footer textSecondary={textSecondary} />
+        <Footer
+          textSecondary={textSecondary}
+        />
       </ScrollView>
     </SafeAreaView>
   );

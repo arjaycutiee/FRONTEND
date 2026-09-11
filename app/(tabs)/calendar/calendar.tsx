@@ -1,5 +1,6 @@
+
 import { useDrawer } from '@/app/(tabs)/_layout';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppTheme } from '@/app/context/ThemeContext';
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
@@ -17,19 +18,38 @@ import {
   UpcomingDeadlinesWidget,
   WeekView,
 } from './components';
+
 import { useCalendarData } from './hooks/useCalendarData';
 import { calendarStyles as styles } from './styles/calendar.styles';
 
 export default function SmartCalendarScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
+  // GabAi manual theme
+  const { colorScheme } = useAppTheme();
 
-  // Theme Color Palette matching Expenses Screen
-  const primaryAccent = '#A97C50'; // GabAI Brown
-  const textTheme = colorScheme === 'dark' ? '#ECEDEE' : '#11181C';
-  const textSubTheme = colorScheme === 'dark' ? '#9BA1A6' : '#666666';
-  const cardTheme = colorScheme === 'dark' ? '#1E1E1E' : '#F8FAFC';
-  const borderTheme = colorScheme === 'dark' ? '#2E2E2E' : '#E2E8F0';
-  const bgTheme = colorScheme === 'dark' ? '#121212' : '#FFFFFF';
+  const isDark = colorScheme === 'dark';
+
+  // Theme Colors
+  const primaryAccent = '#A97C50';
+
+  const textTheme = isDark
+    ? '#ECEDEE'
+    : '#11181C';
+
+  const textSubTheme = isDark
+    ? '#9BA1A6'
+    : '#666666';
+
+  const cardTheme = isDark
+    ? '#1E1E1E'
+    : '#F8FAFC';
+
+  const borderTheme = isDark
+    ? '#2E2E2E'
+    : '#E2E8F0';
+
+  const bgTheme = isDark
+    ? '#121212'
+    : '#FFFFFF';
 
   const { openDrawer } = useDrawer();
 
@@ -56,6 +76,7 @@ export default function SmartCalendarScreen() {
     completeRescheduling,
     upcomingDeadlines,
     filteredEvents,
+
     // Form fields
     newTitle,
     setNewTitle,
@@ -93,8 +114,16 @@ export default function SmartCalendarScreen() {
   } = useCalendarData();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: bgTheme }]} edges={['top']}>
-      {/* Top Header Bar with Hamburger Menu */}
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: bgTheme,
+        },
+      ]}
+      edges={['top']}
+    >
+      {/* Header */}
       <CalendarHeader
         textTheme={textTheme}
         rescheduleMode={rescheduleMode}
@@ -102,7 +131,7 @@ export default function SmartCalendarScreen() {
         onCancelReschedule={cancelRescheduling}
       />
 
-      {/* Calendar Search and Filters */}
+      {/* Search & Filters */}
       <CalendarFilterSection
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -115,7 +144,7 @@ export default function SmartCalendarScreen() {
         primaryAccent={primaryAccent}
       />
 
-      {/* Main Calendar View mode toggles */}
+      {/* View Toggle */}
       <CalendarViewToggle
         viewMode={viewMode}
         onViewModeChange={setViewMode}
@@ -125,9 +154,12 @@ export default function SmartCalendarScreen() {
         textSubTheme={textSubTheme}
       />
 
-      {/* Main Content Layout */}
-      <ScrollView contentContainerStyle={styles.mainScroll} showsVerticalScrollIndicator={false}>
-        {/* Render Selected View */}
+      {/* Main Calendar Content */}
+      <ScrollView
+        contentContainerStyle={styles.mainScroll}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Month View */}
         {viewMode === 'month' && (
           <MonthView
             events={events}
@@ -143,6 +175,7 @@ export default function SmartCalendarScreen() {
           />
         )}
 
+        {/* Week View */}
         {viewMode === 'week' && (
           <WeekView
             events={events}
@@ -164,6 +197,7 @@ export default function SmartCalendarScreen() {
           />
         )}
 
+        {/* Day View */}
         {viewMode === 'day' && (
           <DayView
             events={events}
@@ -181,7 +215,7 @@ export default function SmartCalendarScreen() {
           />
         )}
 
-        {/* Today's Agenda list */}
+        {/* Today's Agenda */}
         <AgendaSection
           events={filteredEvents}
           selectedDate={selectedDate}
@@ -198,7 +232,7 @@ export default function SmartCalendarScreen() {
           textSubTheme={textSubTheme}
         />
 
-        {/* Upcoming Deadlines Widget */}
+        {/* Upcoming Deadlines */}
         <UpcomingDeadlinesWidget
           deadlines={upcomingDeadlines}
           onSelectEvent={(evt) => {
@@ -213,12 +247,22 @@ export default function SmartCalendarScreen() {
         />
       </ScrollView>
 
-      {/* Floating Action Button (FAB) for Quick Add */}
+      {/* Floating Action Button */}
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: primaryAccent }]}
+        style={[
+          styles.fab,
+          {
+            backgroundColor: primaryAccent,
+          },
+        ]}
         onPress={openQuickAdd}
+        activeOpacity={0.8}
       >
-        <Feather name="plus" size={24} color="#FFFFFF" />
+        <Feather
+          name="plus"
+          size={24}
+          color="#FFFFFF"
+        />
       </TouchableOpacity>
 
       {/* Event Details Modal */}
@@ -235,7 +279,7 @@ export default function SmartCalendarScreen() {
         textSubTheme={textSubTheme}
       />
 
-      {/* Quick Add Modal */}
+      {/* Quick Add Event Modal */}
       <QuickAddEventModal
         visible={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -279,3 +323,4 @@ export default function SmartCalendarScreen() {
     </SafeAreaView>
   );
 }
+

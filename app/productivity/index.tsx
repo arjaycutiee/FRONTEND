@@ -117,7 +117,14 @@ export default function StrictFocusSessionScreen() {
         <View style={styles.headerLeft}>
           <TouchableOpacity
             style={[styles.backButton, { backgroundColor: cardBg }]}
-            onPress={() => router.back()}
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+                return;
+              }
+
+              router.replace('/(tabs)/dashboard/dashboard');
+            }}
           >
             <Feather name="arrow-left" size={20} color={textPrimary} />
           </TouchableOpacity>

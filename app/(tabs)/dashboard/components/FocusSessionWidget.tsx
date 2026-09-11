@@ -20,80 +20,142 @@ export default function FocusSessionWidget({
   textSecondary,
   primaryBrown,
   timerDisplay = '25:00',
-  targetDisplay = 'Remaining Study Target: 1.5 hrs',
+  targetDisplay = '1.5 hrs remaining',
 }: FocusSessionWidgetProps) {
   const router = useRouter();
 
   return (
-    <>
-      <Text style={[styles.sectionHeading, { color: textSecondary }]}>Focus Session</Text>
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() => router.push('/productivity' as any)}
-        style={[styles.card, { backgroundColor: cardBg, borderColor: borderCol }]}
-      >
-        <View style={styles.focusWidgetHeader}>
-          <View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-              <Feather name="shield" size={12} color={primaryBrown} style={{ marginRight: 5 }} />
-              <Text style={{ fontSize: 11, fontWeight: '700', color: primaryBrown, textTransform: 'uppercase' }}>Strict Study Guard</Text>
-            </View>
-            <Text style={[styles.focusTimerText, { color: textPrimary }]}>{timerDisplay}</Text>
-            <Text style={[styles.focusTimerSubText, { color: textSecondary }]}>{targetDisplay}</Text>
-          </View>
-          <View style={styles.focusWidgetActions}>
-            <View style={[styles.focusWidgetPlayBtn, { backgroundColor: primaryBrown }]}>
-              <Feather name="play" size={16} color="#FFFFFF" />
-            </View>
-          </View>
+    <TouchableOpacity
+      activeOpacity={0.75}
+      onPress={() => router.push('/productivity' as any)}
+      style={[
+        styles.card,
+        {
+          backgroundColor: cardBg,
+          borderColor: borderCol,
+        },
+      ]}
+    >
+      <View style={styles.left}>
+        <View
+          style={[
+            styles.icon,
+            { backgroundColor: `${primaryBrown}12` },
+          ]}
+        >
+          <Feather
+            name="clock"
+            size={16}
+            color={primaryBrown}
+          />
         </View>
-      </TouchableOpacity>
-    </>
+
+        <View style={styles.info}>
+          <Text
+            style={[
+              styles.title,
+              { color: textPrimary },
+            ]}
+          >
+            Focus Session
+          </Text>
+
+          <Text
+            style={[
+              styles.target,
+              { color: textSecondary },
+            ]}
+          >
+            {targetDisplay}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.right}>
+        <Text
+          style={[
+            styles.timer,
+            { color: textPrimary },
+          ]}
+        >
+          {timerDisplay}
+        </Text>
+
+        <View
+          style={[
+            styles.playButton,
+            { backgroundColor: primaryBrown },
+          ]}
+        >
+          <Feather
+            name="play"
+            size={13}
+            color="#FFFFFF"
+          />
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionHeading: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: 12,
-    marginTop: 4,
-  },
   card: {
-    padding: 16,
+    height: 64,
+    paddingHorizontal: 12,
     borderRadius: 16,
     borderWidth: 1,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  focusWidgetHeader: {
+    marginBottom: 16,
+
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  focusTimerText: {
-    fontSize: 26,
-    fontWeight: 'bold',
+
+  left: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
-  focusTimerSubText: {
-    fontSize: 11,
+
+  icon: {
+    width: 36,
+    height: 36,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  info: {
+    marginLeft: 10,
+  },
+
+  title: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+
+  target: {
+    fontSize: 10,
     marginTop: 2,
   },
-  focusWidgetActions: {
+
+  right: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: 10,
   },
-  focusWidgetPlayBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    justifyContent: 'center',
+
+  timer: {
+    fontSize: 15,
+    fontWeight: '800',
+    marginRight: 10,
+  },
+
+  playButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
+    justifyContent: 'center',
   },
 });

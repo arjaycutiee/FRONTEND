@@ -1,10 +1,19 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { DashboardDeadline } from './types';
 
 interface UpcomingDeadlinesProps {
   deadlines: DashboardDeadline[];
-  getPriorityColor: (priority: DashboardDeadline['priority']) => string;
+  getPriorityColor: (
+    priority: DashboardDeadline['priority']
+  ) => string;
   cardBg: string;
   borderCol: string;
   textPrimary: string;
@@ -21,114 +30,222 @@ export default function UpcomingDeadlines({
   textSecondary,
   primaryBrown,
 }: UpcomingDeadlinesProps) {
+  const router = useRouter();
+
   return (
-    <>
-      <Text style={[styles.sectionHeading, { color: textSecondary }]}>Upcoming Deadlines</Text>
-      {deadlines.map((dl) => (
+    <TouchableOpacity
+      activeOpacity={0.75}
+      onPress={() =>
+        router.push('/(tabs)/tasks/task' as any)
+      }
+      style={[
+        styles.card,
+        {
+          backgroundColor: cardBg,
+          borderColor: borderCol,
+        },
+      ]}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <Text
+          style={[
+            styles.title,
+            { color: textPrimary },
+          ]}
+        >
+          Upcoming Deadlines
+        </Text>
+
+        <Feather
+          name="chevron-right"
+          size={17}
+          color={textSecondary}
+        />
+      </View>
+
+      {/* Deadlines */}
+      {deadlines.slice(0, 4).map((dl) => (
         <View
           key={dl.id}
-          style={[styles.deadlineCard, { backgroundColor: cardBg, borderColor: borderCol }]}
+          style={styles.deadline}
         >
-          <View style={styles.deadlineHeader}>
-            <View>
-              <Text style={[styles.deadlineSubject, { color: primaryBrown }]}>{dl.subject}</Text>
-              <Text style={[styles.deadlineTitle, { color: textPrimary }]} numberOfLines={1}>
+          <View style={styles.deadlineTop}>
+            <View style={styles.nameContainer}>
+              <View
+                style={[
+                  styles.priorityDot,
+                  {
+                    backgroundColor:
+                      getPriorityColor(dl.priority),
+                  },
+                ]}
+              />
+
+              <Text
+                numberOfLines={1}
+                style={[
+                  styles.assignment,
+                  { color: textPrimary },
+                ]}
+              >
                 {dl.assignment}
               </Text>
             </View>
-            <View
-              style={[styles.priorityDot, { backgroundColor: getPriorityColor(dl.priority) }]}
-            />
-          </View>
-          <View style={styles.deadlineFooter}>
-            <Text style={[styles.deadlineCountdown, { color: textSecondary }]}>
+
+            <Text
+              style={[
+                styles.countdown,
+                { color: textSecondary },
+              ]}
+            >
               {dl.countdown}
             </Text>
-            <View style={styles.deadlineProgressWrapper}>
+          </View>
+
+          {/* Progress */}
+          <View style={styles.progressRow}>
+            <View
+              style={[
+                styles.progressBackground,
+                { backgroundColor: borderCol },
+              ]}
+            >
               <View
                 style={[
-                  styles.progressLineBg,
-                  { backgroundColor: borderCol, width: 80, marginRight: 8 },
+                  styles.progressFill,
+                  {
+                    backgroundColor: primaryBrown,
+                    width: `${dl.completion}%`,
+                  },
                 ]}
-              >
-                <View
-                  style={[
-                    styles.progressLineFill,
-                    { backgroundColor: primaryBrown, width: `${dl.completion}%` },
-                  ]}
-                />
-              </View>
-              <Text style={[styles.deadlinePercent, { color: textSecondary }]}>
-                {dl.completion}%
-              </Text>
+              />
             </View>
+
+            <Text
+              style={[
+                styles.percent,
+                { color: textSecondary },
+              ]}
+            >
+              {dl.completion}%
+            </Text>
           </View>
         </View>
       ))}
-    </>
+
+      {deadlines.length === 0 && (
+        <View style={styles.empty}>
+          <Feather
+            name="check-circle"
+            size={15}
+            color={primaryBrown}
+          />
+
+          <Text
+            style={[
+              styles.emptyText,
+              { color: textSecondary },
+            ]}
+          >
+            No upcoming deadlines
+          </Text>
+        </View>
+      )}
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionHeading: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: 12,
-    marginTop: 4,
-  },
-  deadlineCard: {
-    borderRadius: 14,
+  card: {
+    borderRadius: 16,
     borderWidth: 1,
-    padding: 14,
-    marginBottom: 10,
+    padding: 15,
+    marginBottom: 16,
   },
-  deadlineHeader: {
+
+  header: {
+    height: 28,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-start',
-  },
-  deadlineSubject: {
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  deadlineTitle: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    marginTop: 2,
-    maxWidth: 240,
-  },
-  priorityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  deadlineFooter: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
+    marginBottom: 6,
   },
-  deadlineCountdown: {
-    fontSize: 11,
+
+  title: {
+    fontSize: 14,
+    fontWeight: '700',
   },
-  deadlineProgressWrapper: {
+
+  deadline: {
+    paddingVertical: 10,
+  },
+
+  deadlineTop: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  progressLineBg: {
+
+  nameContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+
+  priorityDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+
+  assignment: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  countdown: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 7,
+  },
+
+  progressBackground: {
+    flex: 1,
     height: 4,
     borderRadius: 2,
     overflow: 'hidden',
   },
-  progressLineFill: {
+
+  progressFill: {
     height: '100%',
     borderRadius: 2,
   },
-  deadlinePercent: {
-    fontSize: 10,
+
+  percent: {
+    width: 34,
+    marginLeft: 8,
+    fontSize: 9,
+    textAlign: 'right',
     fontWeight: '600',
+  },
+
+  empty: {
+    height: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  emptyText: {
+    fontSize: 11,
+    marginLeft: 7,
   },
 });

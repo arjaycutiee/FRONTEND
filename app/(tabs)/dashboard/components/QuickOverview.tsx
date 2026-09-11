@@ -23,58 +23,93 @@ export default function QuickOverview({
   weeklySpend = '₱1,250',
 }: QuickOverviewProps) {
   const stats = [
-    { num: `${tasksCount}`, label: 'Tasks Today' },
-    { num: `${deadlinesCount}`, label: 'Deadlines' },
-    { num: `${classesCount}`, label: "Today's Classes" },
-    { num: weeklySpend, label: 'Weekly Spend' },
+    { value: tasksCount, label: 'Tasks' },
+    { value: deadlinesCount, label: 'Due' },
+    { value: classesCount, label: 'Classes' },
+    { value: weeklySpend, label: 'Spent' },
   ];
 
   return (
-    <>
-      <Text style={[styles.sectionHeading, { color: textSecondary }]}>Quick Overview</Text>
-      <View style={styles.statsGrid}>
-        {stats.map((item, idx) => (
-          <View
-            key={idx}
-            style={[styles.statCard, { backgroundColor: cardBg, borderColor: borderCol }]}
-          >
-            <Text style={[styles.statNum, { color: textPrimary }]}>{item.num}</Text>
-            <Text style={[styles.statLabel, { color: textSecondary }]}>{item.label}</Text>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: cardBg,
+          borderColor: borderCol,
+        },
+      ]}
+    >
+      {stats.map((item, index) => (
+        <React.Fragment key={item.label}>
+          <View style={styles.stat}>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={[
+                styles.value,
+                { color: textPrimary },
+              ]}
+            >
+              {item.value}
+            </Text>
+
+            <Text
+              style={[
+                styles.label,
+                { color: textSecondary },
+              ]}
+            >
+              {item.label}
+            </Text>
           </View>
-        ))}
-      </View>
-    </>
+
+          {index < stats.length - 1 && (
+            <View
+              style={[
+                styles.divider,
+                { backgroundColor: borderCol },
+              ]}
+            />
+          )}
+        </React.Fragment>
+      ))}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionHeading: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: 12,
-    marginTop: 4,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  statCard: {
-    width: '48%',
-    borderRadius: 14,
+  container: {
+    height: 68,
+    borderRadius: 16,
     borderWidth: 1,
-    padding: 14,
-    marginBottom: 12,
+
+    flexDirection: 'row',
+    alignItems: 'center',
+
+    paddingHorizontal: 8,
+    marginBottom: 16,
   },
-  statNum: {
-    fontSize: 20,
-    fontWeight: 'bold',
+
+  stat: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  statLabel: {
-    fontSize: 11,
-    marginTop: 4,
+
+  value: {
+    fontSize: 17,
+    fontWeight: '800',
+  },
+
+  label: {
+    fontSize: 9,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+
+  divider: {
+    width: 1,
+    height: 28,
+    opacity: 0.5,
   },
 });
