@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,6 +10,11 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import {
+  getNotifications,
+  subscribeToNotifications,
+} from '@/app/notifications/notificationService';
+import { Notification } from '@/app/notifications/types';
 
 interface DashboardHeaderProps {
   onOpenDrawer: () => void;
@@ -24,6 +29,24 @@ export default function DashboardHeader({
 }: DashboardHeaderProps) {
   const router = useRouter();
   const [notificationsVisible, setNotificationsVisible] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getNotifications().then((storedNotifications) => {
+      if (isMounted) {
+        setNotifications(storedNotifications);
+      }
+    });
+
+    const unsubscribe = subscribeToNotifications(setNotifications);
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, []);
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -94,7 +117,9 @@ export default function DashboardHeader({
             />
 
             {/* Notification indicator */}
-            <View style={styles.notificationDot} />
+            {notifications.some((notification) => !notification.read) && (
+              <View style={styles.notificationDot} />
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -177,57 +202,57 @@ export default function DashboardHeader({
               </TouchableOpacity>
             </View>
 
-            {/* Notification */}
-            <View
-              style={[
-                styles.notificationItem,
-                {
-                  backgroundColor:
-                    textPrimary === '#ECEDEE'
-                      ? '#262626'
-                      : '#F8FAFC',
-                },
-              ]}
-            >
-              <View style={styles.notificationIcon}>
-                <Feather
-                  name="alert-circle"
-                  size={18}
-                  color="#F59E0B"
-                />
+            {notifications.map((notification) => (
+              <View
+                key={notification.id}
+                style={[
+                  styles.notificationItem,
+                  {
+                    backgroundColor:
+                      textPrimary === '#ECEDEE'
+                        ? '#262626'
+                        : '#F8FAFC',
+                  },
+                ]}
+              >
+                <View style={styles.notificationIcon}>
+                  <Feather
+                    name="alert-circle"
+                    size={18}
+                    color="#F59E0B"
+                  />
+                </View>
+
+                <View style={styles.notificationContent}>
+                  <Text
+                    style={[
+                      styles.notificationItemTitle,
+                      { color: textPrimary },
+                    ]}
+                  >
+                    {notification.title}
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.notificationMessage,
+                      { color: textSecondary },
+                    ]}
+                  >
+                    {notification.message}
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.notificationTime,
+                      { color: textSecondary },
+                    ]}
+                  >
+                    {notification.time}
+                  </Text>
+                </View>
               </View>
-
-              <View style={styles.notificationContent}>
-                <Text
-                  style={[
-                    styles.notificationItemTitle,
-                    { color: textPrimary },
-                  ]}
-                >
-                  Due Today
-                </Text>
-
-                <Text
-                  style={[
-                    styles.notificationMessage,
-                    { color: textSecondary },
-                  ]}
-                >
-                  Capstone draft is due today. Make sure
-                  to review the guidelines before
-                  submitting.
-                </Text>
-
-                <Text
-                  style={[
-                    styles.notificationTime,
-                    { color: textSecondary },
-                  ]}
-                >
-                  Today
-                </Text>
-              </View>
-            </View>
+            ))}
 
             {/* Empty space / future notifications */}
             <View style={styles.footer}>
@@ -243,7 +268,7 @@ export default function DashboardHeader({
                   { color: textSecondary },
                 ]}
               >
-                You're all caught up
+                You&apos;re all caught up
               </Text>
             </View>
           </Pressable>
