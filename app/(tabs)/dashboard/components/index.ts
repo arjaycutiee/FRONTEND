@@ -8,7 +8,6 @@ export { default as TodaysSchedule } from './TodaysSchedule';
 export { default as FocusSessionWidget } from './FocusSessionWidget';
 export { default as UpcomingDeadlines } from './UpcomingDeadlines';
 export { default as SubjectProgress } from './SubjectProgress';
-export { default as ProductivityInsights } from './ProductivityInsights';
 export { default as RecentActivity } from './RecentActivity';
 export { default as Footer } from './Footer';
 export * from './types';

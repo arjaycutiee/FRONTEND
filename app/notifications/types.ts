@@ -1,3 +1,4 @@
+
 export type NotificationType =
   | 'task_due_today'
   | 'task_due_tomorrow'
@@ -16,6 +17,10 @@ export interface Notification {
   type: NotificationType;
   time: string;
   read: boolean;
+
+  icon: string;
+  iconColor: string;
+
   taskId?: string;
   assignmentId?: string;
 }
@@ -23,3 +28,4 @@ export interface Notification {
 export type CreateNotificationInput = Omit<Notification, 'id'> & {
   id?: string;
 };
+

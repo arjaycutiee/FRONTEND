@@ -177,14 +177,13 @@ export default function DashboardHeader({
                 >
                   Notifications
                 </Text>
-
                 <Text
                   style={[
                     styles.notificationSubtitle,
                     { color: textSecondary },
                   ]}
                 >
-                  Your latest reminders
+                  Academic reminders & productivity insights
                 </Text>
               </View>
 
@@ -202,75 +201,117 @@ export default function DashboardHeader({
               </TouchableOpacity>
             </View>
 
-            {notifications.map((notification) => (
-              <View
-                key={notification.id}
-                style={[
-                  styles.notificationItem,
-                  {
-                    backgroundColor:
-                      textPrimary === '#ECEDEE'
-                        ? '#262626'
-                        : '#F8FAFC',
-                  },
-                ]}
-              >
-                <View style={styles.notificationIcon}>
-                  <Feather
-                    name="alert-circle"
-                    size={18}
-                    color="#F59E0B"
-                  />
+            {notifications.length > 0 ? (
+              notifications.map((notification) => (
+                <View
+                  key={notification.id}
+                  style={[
+                    styles.notificationItem,
+                    {
+                      backgroundColor:
+                        textPrimary === '#ECEDEE'
+                          ? '#262626'
+                          : '#F8FAFC',
+                      marginBottom: 10,
+                      opacity: notification.read ? 0.65 : 1,
+                    },
+                  ]}
+                >
+                  {/* Dynamic Icon */}
+                  <View
+                    style={[
+                      styles.notificationIcon,
+                      {
+                        backgroundColor: '#F59E0B15',
+                      },
+                    ]}
+                  >
+                    <Feather
+                      name="alert-circle"
+                      size={18}
+                      color="#F59E0B"
+                    />
+                  </View>
+
+                  {/* Content */}
+                  <View style={styles.notificationContent}>
+                    <Text
+                      style={[
+                        styles.notificationItemTitle,
+                        { color: textPrimary },
+                      ]}
+                    >
+                      {notification.title}
+                    </Text>
+
+                    <Text
+                      style={[
+                        styles.notificationMessage,
+                        { color: textSecondary },
+                      ]}
+                    >
+                      {notification.message}
+                    </Text>
+
+                    <Text
+                      style={[
+                        styles.notificationTime,
+                        { color: textSecondary },
+                      ]}
+                    >
+                      {notification.time}
+                    </Text>
+                  </View>
                 </View>
+              ))
+            ) : (
+              <View style={styles.emptyNotification}>
+                <Feather
+                  name="check-circle"
+                  size={28}
+                  color="#10B981"
+                />
 
-                <View style={styles.notificationContent}>
-                  <Text
-                    style={[
-                      styles.notificationItemTitle,
-                      { color: textPrimary },
-                    ]}
-                  >
-                    {notification.title}
-                  </Text>
+                <Text
+                  style={[
+                    styles.emptyNotificationTitle,
+                    { color: textPrimary },
+                  ]}
+                >
+                  You're all caught up
+                </Text>
 
-                  <Text
-                    style={[
-                      styles.notificationMessage,
-                      { color: textSecondary },
-                    ]}
-                  >
-                    {notification.message}
-                  </Text>
-
-                  <Text
-                    style={[
-                      styles.notificationTime,
-                      { color: textSecondary },
-                    ]}
-                  >
-                    {notification.time}
-                  </Text>
-                </View>
+                <Text
+                  style={[
+                    styles.emptyNotificationText,
+                    { color: textSecondary },
+                  ]}
+                >
+                  No reminders or productivity updates right now.
+                </Text>
               </View>
-            ))}
+            )}
 
             {/* Empty space / future notifications */}
-            <View style={styles.footer}>
-              <Feather
-                name="check-circle"
-                size={15}
-                color={textSecondary}
-              />
+            {notifications.length > 0 && (
+              <View style={styles.footer}>
+                <Feather
+                  name="bell"
+                  size={15}
+                  color={textSecondary}
+                />
 
-              <Text
-                style={[
-                  styles.footerText,
-                  { color: textSecondary },
-                ]}
-              >
-                You&apos;re all caught up
-              </Text>
-            </View>
+                <Text
+                  style={[
+                    styles.footerText,
+                    { color: textSecondary },
+                  ]}
+                >
+                  {notifications.length} notification
+                  {notifications.length > 1 ? 's' : ''}
+                </Text>
+              </View>
+            )}
           </Pressable>
         </Pressable>
       </Modal>
@@ -279,6 +320,25 @@ export default function DashboardHeader({
 }
 
 const styles = StyleSheet.create({
+  emptyNotification: {
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: 28,
+  paddingHorizontal: 20,
+},
+
+emptyNotificationTitle: {
+  fontSize: 14,
+  fontWeight: '700',
+  marginTop: 10,
+},
+
+emptyNotificationText: {
+  fontSize: 12,
+  marginTop: 4,
+  textAlign: 'center',
+  lineHeight: 18,
+},
   container: {
     width: '100%',
     paddingHorizontal: 18,

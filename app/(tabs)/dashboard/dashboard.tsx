@@ -17,7 +17,6 @@ import {
   FocusSessionWidget,
   UpcomingDeadlines,
   SubjectProgress,
-  ProductivityInsights,
   RecentActivity,
   Footer,
   DashboardTask,
@@ -204,15 +203,6 @@ export default function DashboardScreen() {
           borderCol={borderCol}
           textPrimary={textPrimary}
           textSecondary={textSecondary}
-          primaryBrown={primaryBrown}
-        />
-
-        {/* 11. Productivity Insights */}
-        <ProductivityInsights
-          cardBg={cardBg}
-          borderCol={borderCol}
-          textSecondary={textSecondary}
-          successGreen={successGreen}
           primaryBrown={primaryBrown}
         />
 
