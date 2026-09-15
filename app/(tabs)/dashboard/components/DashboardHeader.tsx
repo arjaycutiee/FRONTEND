@@ -2,6 +2,10 @@ import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useCurrentUser } from '@/hooks/use-current-user';
+
+const formatToday = () =>
+  new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
 interface DashboardHeaderProps {
   greeting: string;
@@ -17,6 +21,7 @@ export default function DashboardHeader({
   textSecondary,
 }: DashboardHeaderProps) {
   const router = useRouter();
+  const { firstName } = useCurrentUser();
 
   return (
     <View style={styles.header}>
@@ -25,8 +30,8 @@ export default function DashboardHeader({
           <Feather name="menu" size={24} color={textPrimary} />
         </TouchableOpacity>
         <View>
-          <Text style={[styles.greetingText, { color: textPrimary }]}>{greeting}, Vience!</Text>
-          <Text style={[styles.dateText, { color: textSecondary }]}>Saturday, July 25</Text>
+          <Text style={[styles.greetingText, { color: textPrimary }]}>{greeting}, {firstName}!</Text>
+          <Text style={[styles.dateText, { color: textSecondary }]}>{formatToday()}</Text>
         </View>
       </View>
       <View style={styles.headerActions}>

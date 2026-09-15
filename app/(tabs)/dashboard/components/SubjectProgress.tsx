@@ -22,6 +22,11 @@ export default function SubjectProgress({
   return (
     <>
       <Text style={[styles.sectionHeading, { color: textSecondary }]}>Subject Progress</Text>
+      {subjects.length === 0 && (
+        <View style={[styles.subjectCard, { backgroundColor: cardBg, borderColor: borderCol }]}>
+          <Text style={{ fontSize: 13, color: textSecondary }}>Add tasks with a subject to track progress here.</Text>
+        </View>
+      )}
       {subjects.map((sub, idx) => (
         <View
           key={idx}

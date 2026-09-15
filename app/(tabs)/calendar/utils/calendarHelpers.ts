@@ -1,19 +1,11 @@
 import { EventPriority, PriorityColorConfig } from '../types';
+import { getCountdownLabel, todayISO } from '@/utils/date';
 
 /**
- * Get days remaining text from a reference date
+ * Get days remaining text from a reference date (defaults to today)
  */
-export const getDeadlineBadgeText = (dateStr: string, referenceDateStr: string = '2026-07-24'): string => {
-  const today = new Date(referenceDateStr);
-  const deadline = new Date(dateStr);
-  const timeDiff = deadline.getTime() - today.getTime();
-  const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Tomorrow';
-  if (diffDays < 0) return 'Overdue';
-  return `${diffDays} days left`;
-};
+export const getDeadlineBadgeText = (dateStr: string, referenceDateStr: string = todayISO()): string =>
+  getCountdownLabel(dateStr, referenceDateStr);
 
 /**
  * Get deadline priority color styling

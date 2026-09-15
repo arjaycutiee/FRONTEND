@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { TaskTheme, Task } from '../../types';
 import type { useTaskData } from '../../hooks/useTaskData';
 import { taskStyles as styles } from '../../styles/task.styles';
+import { getLastNDays, todayISO } from '@/utils/date';
 
 interface TaskOverviewViewProps {
   taskData: ReturnType<typeof useTaskData>;
@@ -26,23 +27,12 @@ export default function TaskOverviewView({ taskData, theme }: TaskOverviewViewPr
   const workload = getWorkloadLevel();
   const pinnedTasks = tasks.filter((t) => t.isPinned && !t.completed);
 
-  // Mock heatmap 14 days
-  const heatmapDays = [
-    { date: '12', full: '2026-07-12', load: 1 },
-    { date: '13', full: '2026-07-13', load: 3 },
-    { date: '14', full: '2026-07-14', load: 2 },
-    { date: '15', full: '2026-07-15', load: 0 },
-    { date: '16', full: '2026-07-16', load: 4 },
-    { date: '17', full: '2026-07-17', load: 2 },
-    { date: '18', full: '2026-07-18', load: 1 },
-    { date: '19', full: '2026-07-19', load: 0 },
-    { date: '20', full: '2026-07-20', load: 2 },
-    { date: '21', full: '2026-07-21', load: 3 },
-    { date: '22', full: '2026-07-22', load: 4 },
-    { date: '23', full: '2026-07-23', load: 1 },
-    { date: '24', full: '2026-07-24', load: 2 },
-    { date: '25', full: '2026-07-25', load: 3 },
-  ];
+  // Workload heatmap: number of tasks due on each of the last 14 days (capped at 4)
+  const today = todayISO();
+  const heatmapDays = getLastNDays(14, today).map((day) => ({
+    ...day,
+    load: Math.min(4, tasks.filter((t) => t.dueDate === day.full).length),
+  }));
 
   return (
     <View style={styles.overviewContainer}>
@@ -113,7 +103,7 @@ export default function TaskOverviewView({ taskData, theme }: TaskOverviewViewPr
               else if (day.load === 3) cellColor = primaryBrown + '70';
               else cellColor = primaryBrown;
             }
-            const isToday = day.full === '2026-07-25';
+            const isToday = day.full === today;
 
             return (
               <View key={idx} style={styles.heatmapCellContainer}>

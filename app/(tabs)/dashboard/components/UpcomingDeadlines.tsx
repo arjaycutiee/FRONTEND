@@ -24,6 +24,11 @@ export default function UpcomingDeadlines({
   return (
     <>
       <Text style={[styles.sectionHeading, { color: textSecondary }]}>Upcoming Deadlines</Text>
+      {deadlines.length === 0 && (
+        <View style={[styles.deadlineCard, { backgroundColor: cardBg, borderColor: borderCol }]}>
+          <Text style={{ fontSize: 13, color: textSecondary }}>No deadlines in the next 7 days.</Text>
+        </View>
+      )}
       {deadlines.map((dl) => (
         <View
           key={dl.id}

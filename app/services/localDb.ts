@@ -99,6 +99,7 @@ type Listener = () => void;
 
 class LocalDb {
   private currentUser: CurrentUser | null = null;
+  private authToken: string | null = null;
   private tasks: Task[] = [];
   private notes: Note[] = [];
   private events: CalendarEvent[] = [];
@@ -135,9 +136,19 @@ class LocalDb {
     this.notify();
   }
 
+  /** JWT access token from the backend; attached to API requests by `api.ts`. */
+  getAuthToken(): string | null {
+    return this.authToken;
+  }
+
+  setAuthToken(token: string | null): void {
+    this.authToken = token;
+  }
+
   /** Called on logout. Also wipes the per-user collections. */
   clearCurrentUser(): void {
     this.currentUser = null;
+    this.authToken = null;
     this.tasks = [];
     this.notes = [];
     this.events = [];

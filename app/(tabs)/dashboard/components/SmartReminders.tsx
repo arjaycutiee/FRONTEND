@@ -5,13 +5,13 @@ import { Feather } from '@expo/vector-icons';
 interface SmartRemindersProps {
   warningOrange: string;
   textPrimary: string;
-  reminderText?: string;
+  reminderText: string;
 }
 
 export default function SmartReminders({
   warningOrange,
   textPrimary,
-  reminderText = 'Capstone draft is due today. Make sure to review guidelines!',
+  reminderText,
 }: SmartRemindersProps) {
   return (
     <View

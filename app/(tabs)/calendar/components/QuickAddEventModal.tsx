@@ -192,7 +192,7 @@ export default function QuickAddEventModal({
               <View style={{ flex: 1, marginRight: 8 }}>
                 <Text style={[styles.formLabel, { color: textSubTheme, marginTop: 16 }]}>Date (YYYY-MM-DD)</Text>
                 <TextInput
-                  placeholder="2026-07-24"
+                  placeholder="YYYY-MM-DD"
                   placeholderTextColor={textSubTheme}
                   style={[styles.formInput, { color: textTheme, borderColor: borderTheme }]}
                   value={date}

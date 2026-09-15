@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { CalendarEvent } from '../types';
-import { CATEGORY_COLORS, WEEK_DAYS_DATA } from '../constants/calendarConfig';
+import { CATEGORY_COLORS } from '../constants/calendarConfig';
 import { getPriorityColors } from '../utils/calendarHelpers';
 import { calendarStyles as styles } from '../styles/calendar.styles';
+import { getWeekDays, formatWeekRange, todayISO } from '@/utils/date';
 
 interface WeekViewProps {
   events: CalendarEvent[];
@@ -36,15 +37,18 @@ export default function WeekView({
   bgTheme,
   primaryAccent,
 }: WeekViewProps) {
+  const today = todayISO();
+  const weekDays = getWeekDays(selectedDate);
+
   return (
     <View style={[styles.calendarCard, { backgroundColor: cardTheme, borderColor: borderTheme }]}>
-      <Text style={[styles.monthLabel, { color: textTheme, marginBottom: 12 }]}>July 19 - 25, 2026</Text>
+      <Text style={[styles.monthLabel, { color: textTheme, marginBottom: 12 }]}>{formatWeekRange(weekDays)}</Text>
 
       {/* Week row navigation headers */}
       <View style={styles.weekRowContainer}>
-        {WEEK_DAYS_DATA.map((day) => {
+        {weekDays.map((day) => {
           const isSelected = selectedDate === day.full;
-          const isToday = day.full === '2026-07-24';
+          const isToday = day.full === today;
           return (
             <TouchableOpacity
               key={day.full}
@@ -81,7 +85,7 @@ export default function WeekView({
         Events in selected week
       </Text>
       <View style={styles.weeklyTimelineContainer}>
-        {WEEK_DAYS_DATA.map((d) => {
+        {weekDays.map((d) => {
           const dayEvts = events.filter((e) => e.date === d.full);
           if (dayEvts.length === 0) return null;
           const dayLabel = new Date(d.full).toLocaleDateString('en-US', {

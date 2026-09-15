@@ -32,6 +32,11 @@ export default function TodaysFocus({
       <Text style={[styles.cardTitle, { color: textPrimary, marginBottom: 12 }]}>
         ⭐️ Today&apos;s Focus
       </Text>
+      {tasks.length === 0 && (
+        <Text style={{ fontSize: 13, color: textSecondary, marginBottom: 8 }}>
+          No tasks due today. Enjoy the breathing room or plan ahead.
+        </Text>
+      )}
       {tasks.map((task) => (
         <View key={task.id} style={styles.focusTaskRow}>
           <TouchableOpacity

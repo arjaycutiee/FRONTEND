@@ -21,11 +21,12 @@ export function useFocusTimer() {
   const [isPaused, setIsPaused] = useState<boolean>(false);
 
   // Stats
+  // Starts at zero — accumulates from real focus sessions in this app run.
   const [stats, setStats] = useState<FocusStats>({
-    todayMinutes: 45,
-    todaySessions: 2,
-    streakDays: 5,
-    totalHours: 18.5,
+    todayMinutes: 0,
+    todaySessions: 0,
+    streakDays: 0,
+    totalHours: 0,
   });
 
   // Completion Modal

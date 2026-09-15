@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { localDb, Task, SubTask } from '@/app/services/localDb';
 import { TaskSubTab, TaskCategory, TaskPriority, TaskDifficulty, TaskRepeat } from '../types';
+import { todayISO, addDaysISO } from '@/utils/date';
 
 export function useTaskData() {
   const [activeSubTab, setActiveSubTab] = useState<TaskSubTab>('overview');
@@ -42,7 +43,7 @@ export function useTaskData() {
   const [newPriority, setNewPriority] = useState<TaskPriority>('Medium');
   const [newDifficulty, setNewDifficulty] = useState<TaskDifficulty>('Medium');
   const [newDuration, setNewDuration] = useState('1.5');
-  const [newDueDate, setNewDueDate] = useState('2026-07-25');
+  const [newDueDate, setNewDueDate] = useState(() => todayISO());
   const [newDueTime, setNewDueTime] = useState('12:00');
   const [newHasReminder, setNewHasReminder] = useState(false);
   const [newRepeat, setNewRepeat] = useState<TaskRepeat>('None');
@@ -87,9 +88,9 @@ export function useTaskData() {
     return { level: 'Light', color: '#10B981', desc: 'Great job! Workload is well managed and relaxed.' };
   }, [activeTasks]);
 
-  // Date constants (today is July 25, 2026)
-  const todayStr = '2026-07-25';
-  const tomorrowStr = '2026-07-26';
+  // Real dates from the device clock
+  const todayStr = todayISO();
+  const tomorrowStr = addDaysISO(todayStr, 1);
 
   // Filtered Tasks
   const filteredTasks = useMemo(() => {

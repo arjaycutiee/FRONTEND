@@ -2,7 +2,13 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
+export interface ActivityItem {
+  icon: React.ComponentProps<typeof Feather>['name'];
+  text: string;
+}
+
 interface RecentActivityProps {
+  activities: ActivityItem[];
   cardBg: string;
   borderCol: string;
   textSecondary: string;
@@ -10,21 +16,19 @@ interface RecentActivityProps {
 }
 
 export default function RecentActivity({
+  activities,
   cardBg,
   borderCol,
   textSecondary,
   primaryBrown,
 }: RecentActivityProps) {
-  const activities = [
-    { icon: 'check-square' as const, text: 'Completed Capstone Database design schema.' },
-    { icon: 'dollar-sign' as const, text: 'Added expense for bus fare (₱35.00).' },
-    { icon: 'calendar' as const, text: 'Created event study group meetup at Library.' },
-  ];
-
   return (
     <>
       <Text style={[styles.sectionHeading, { color: textSecondary }]}>Recent Activity</Text>
       <View style={[styles.card, { backgroundColor: cardBg, borderColor: borderCol }]}>
+        {activities.length === 0 && (
+          <Text style={[styles.activityText, { color: textSecondary }]}>No recent activity yet.</Text>
+        )}
         {activities.map((act, idx) => (
           <View key={idx} style={[styles.activityRow, idx > 0 && { marginTop: 10 }]}>
             <Feather name={act.icon} size={14} color={primaryBrown} style={{ marginRight: 8 }} />

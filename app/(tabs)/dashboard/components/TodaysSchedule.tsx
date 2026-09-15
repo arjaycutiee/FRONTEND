@@ -26,6 +26,11 @@ export default function TodaysSchedule({
     <>
       <Text style={[styles.sectionHeading, { color: textSecondary }]}>Today&apos;s Schedule</Text>
       <View style={[styles.card, { backgroundColor: cardBg, borderColor: borderCol, paddingVertical: 12 }]}>
+        {items.length === 0 && (
+          <Text style={{ fontSize: 13, color: textSecondary, paddingHorizontal: 4 }}>
+            Nothing scheduled for today.
+          </Text>
+        )}
         {items.map((item, idx) => (
           <View key={idx} style={styles.timelineRow}>
             <Text style={[styles.timelineTimeText, { color: textSecondary }]}>

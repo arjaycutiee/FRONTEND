@@ -3,37 +3,53 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+type PressureLevel = 'Light' | 'Moderate' | 'Heavy';
+
 interface AcademicPressureProps {
+  level: PressureLevel;
+  description: string;
   cardBg: string;
   borderCol: string;
   textPrimary: string;
   textSecondary: string;
   errorRed: string;
+  warningOrange: string;
+  successGreen: string;
   primaryBrown: string;
 }
 
+const LEVEL_META: Record<PressureLevel, { title: string; badge: string }> = {
+  Light: { title: 'Light Pressure', badge: 'On Track' },
+  Moderate: { title: 'Moderate Pressure', badge: 'Stay Focused' },
+  Heavy: { title: 'High Pressure', badge: 'Critical Priority' },
+};
+
 export default function AcademicPressure({
+  level,
+  description,
   cardBg,
   borderCol,
   textPrimary,
   textSecondary,
   errorRed,
+  warningOrange,
+  successGreen,
   primaryBrown,
 }: AcademicPressureProps) {
   const router = useRouter();
+  const color = level === 'Heavy' ? errorRed : level === 'Moderate' ? warningOrange : successGreen;
+  const meta = LEVEL_META[level];
 
   return (
     <View style={[styles.card, { backgroundColor: cardBg, borderColor: borderCol }]}>
       <Text style={[styles.cardTitle, { color: textPrimary }]}>Academic Pressure</Text>
       <View style={styles.pressureRow}>
-        <Text style={[styles.pressureLevelText, { color: errorRed }]}>High Pressure</Text>
-        <View style={[styles.pressureBadge, { backgroundColor: errorRed + '15' }]}>
-          <Text style={[styles.pressureBadgeText, { color: errorRed }]}>Critical Priority</Text>
+        <Text style={[styles.pressureLevelText, { color }]}>{meta.title}</Text>
+        <View style={[styles.pressureBadge, { backgroundColor: color + '15' }]}>
+          <Text style={[styles.pressureBadgeText, { color }]}>{meta.badge}</Text>
         </View>
       </View>
-      <Text style={[styles.pressureDesc, { color: textSecondary }]}>
-        You have three deadlines within two days. General study load is moderate, but exam prep requirements are dense this weekend.
-      </Text>
+      <Text style={[styles.pressureDesc, { color: textSecondary }]}>{description}</Text>
       <TouchableOpacity
         style={styles.detailsActionRow}
         onPress={() => router.push('/(tabs)/tasks/task')}

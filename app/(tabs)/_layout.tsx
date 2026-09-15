@@ -1,7 +1,7 @@
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Feather } from '@expo/vector-icons';
 import { Tabs, usePathname, useRouter } from 'expo-router';
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -14,6 +14,8 @@ import {
   View,
 } from 'react-native';
 import { localDb } from '@/app/services/localDb';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useWorkspaceStats } from '@/hooks/use-workspace-stats';
 import FloatingAssistant from '@/components/FloatingAssistant';
 
 export const DrawerContext = createContext({
@@ -41,17 +43,15 @@ export default function TabLayout() {
   const cardBg = isDark ? '#1E1E1E' : '#F8FAFC';
   const borderCol = isDark ? '#2E2E2E' : '#E2E8F0';
 
-  // Notes and Tasks dynamic counts
-  const [notesCount, setNotesCount] = useState(() => localDb.getNotes().filter(n => !n.isArchived).length);
-  const [tasksCount, setTasksCount] = useState(() => localDb.getTasks().filter(t => !t.completed).length);
+  // Signed-in account shown in the drawer header
+  const currentUser = useCurrentUser();
 
-  useEffect(() => {
-    const unsubscribe = localDb.subscribe(() => {
-      setNotesCount(localDb.getNotes().filter(n => !n.isArchived).length);
-      setTasksCount(localDb.getTasks().filter(t => !t.completed).length);
-    });
-    return unsubscribe;
-  }, []);
+  // Live workspace numbers (nothing hardcoded)
+  const stats = useWorkspaceStats();
+  const notesCount = stats.activeNotesCount;
+  const tasksCount = stats.activeTasks.length;
+  const pressureColor =
+    stats.pressure.level === 'Heavy' ? errorRed : stats.pressure.level === 'Moderate' ? warningOrange : successGreen;
 
   // Drawer Animation State
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -90,7 +90,14 @@ export default function TabLayout() {
       'Are you sure you want to log out of GabAi?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Log Out', style: 'destructive', onPress: () => router.replace('/(auth)/login/login') },
+        {
+          text: 'Log Out',
+          style: 'destructive',
+          onPress: () => {
+            localDb.clearCurrentUser();
+            router.replace('/(auth)/login/login');
+          },
+        },
       ]
     );
   };
@@ -145,14 +152,16 @@ export default function TabLayout() {
             <View style={[styles.profileSection, { borderBottomColor: borderCol }]}>
               <View style={styles.profileHeader}>
                 <View style={[styles.avatar, { backgroundColor: primaryBrown }]}>
-                  <Text style={styles.avatarText}>SV</Text>
+                  <Text style={styles.avatarText}>{currentUser.initials}</Text>
                 </View>
                 <View style={styles.profileInfo}>
-                  <Text style={[styles.profileName, { color: textPrimary }]}>Ruenz Vience</Text>
-                  <Text style={[styles.profileCourse, { color: textSecondary }]}>BS Computer Science • Yr 4</Text>
+                  <Text style={[styles.profileName, { color: textPrimary }]}>{currentUser.name}</Text>
+                  <Text style={[styles.profileCourse, { color: textSecondary }]}>{currentUser.course}</Text>
                   <View style={styles.statusRow}>
-                    <View style={[styles.statusDot, { backgroundColor: successGreen }]} />
-                    <Text style={[styles.statusText, { color: successGreen }]}>Offline Sync Active</Text>
+                    <View style={[styles.statusDot, { backgroundColor: currentUser.isSignedIn ? successGreen : textSecondary }]} />
+                    <Text style={[styles.statusText, { color: currentUser.isSignedIn ? successGreen : textSecondary }]}>
+                      {currentUser.isSignedIn ? 'Signed in' : 'Not signed in'}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -160,18 +169,18 @@ export default function TabLayout() {
               {/* Compact Academic Summary */}
               <View style={[styles.academicSummaryRow, { backgroundColor: bgTheme, borderColor: borderCol }]}>
                 <View style={styles.summaryColumn}>
-                  <Text style={[styles.summaryLabel, { color: textSecondary }]}>Sem</Text>
-                  <Text style={[styles.summaryVal, { color: textPrimary }]}>1st</Text>
+                  <Text style={[styles.summaryLabel, { color: textSecondary }]}>Tasks</Text>
+                  <Text style={[styles.summaryVal, { color: textPrimary }]}>{tasksCount}</Text>
                 </View>
                 <View style={[styles.verticalDivider, { backgroundColor: borderCol }]} />
                 <View style={styles.summaryColumn}>
-                  <Text style={[styles.summaryLabel, { color: textSecondary }]}>Streak</Text>
-                  <Text style={[styles.summaryVal, { color: textPrimary }]}>5 Days</Text>
+                  <Text style={[styles.summaryLabel, { color: textSecondary }]}>Notes</Text>
+                  <Text style={[styles.summaryVal, { color: textPrimary }]}>{notesCount}</Text>
                 </View>
                 <View style={[styles.verticalDivider, { backgroundColor: borderCol }]} />
                 <View style={styles.summaryColumn}>
                   <Text style={[styles.summaryLabel, { color: textSecondary }]}>Done</Text>
-                  <Text style={[styles.summaryVal, { color: textPrimary }]}>87%</Text>
+                  <Text style={[styles.summaryVal, { color: textPrimary }]}>{stats.completionRate}%</Text>
                 </View>
               </View>
             </View>
@@ -288,15 +297,15 @@ export default function TabLayout() {
               <Text style={[styles.menuSectionHeader, { color: textSecondary }]}>ACADEMIC SHORTCUTS</Text>
               <View style={styles.shortcutRow}>
                 <View style={[styles.shortcutDot, { backgroundColor: warningOrange }]} />
-                <Text style={[styles.shortcutText, { color: textSecondary }]}>Today&apos;s Classes: 2 Remaining</Text>
+                <Text style={[styles.shortcutText, { color: textSecondary }]}>Today&apos;s Classes: {stats.classesRemainingToday} Remaining</Text>
               </View>
               <View style={styles.shortcutRow}>
                 <View style={[styles.shortcutDot, { backgroundColor: errorRed }]} />
-                <Text style={[styles.shortcutText, { color: textSecondary }]}>Assignments Due Today: 3 Pending</Text>
+                <Text style={[styles.shortcutText, { color: textSecondary }]}>Assignments Due Today: {stats.tasksDueToday.length} Pending</Text>
               </View>
               <View style={styles.shortcutRow}>
                 <View style={[styles.shortcutDot, { backgroundColor: successGreen }]} />
-                <Text style={[styles.shortcutText, { color: textSecondary }]}>Upcoming Deadlines: 5 Sorted</Text>
+                <Text style={[styles.shortcutText, { color: textSecondary }]}>Upcoming Deadlines: {stats.upcomingDeadlines.length} This Week</Text>
               </View>
             </View>
 
@@ -305,14 +314,14 @@ export default function TabLayout() {
               <Text style={[styles.menuSectionHeader, { color: textSecondary, marginBottom: 8 }]}>DAILY SUMMARY</Text>
               <View style={[styles.progressCard, { backgroundColor: bgTheme, borderColor: borderCol }]}>
                 <Text style={[styles.progressLabel, { color: textSecondary }]}>Today&apos;s Completion Rate</Text>
-                <Text style={[styles.progressVal, { color: textPrimary }]}>87% Done</Text>
+                <Text style={[styles.progressVal, { color: textPrimary }]}>{stats.todayCompletionRate}% Done</Text>
                 <View style={[styles.miniProgressBg, { backgroundColor: borderCol }]}>
-                  <View style={[styles.miniProgressFill, { backgroundColor: primaryBrown, width: '87%' }]} />
+                  <View style={[styles.miniProgressFill, { backgroundColor: primaryBrown, width: `${stats.todayCompletionRate}%` }]} />
                 </View>
               </View>
               <View style={[styles.progressCard, { backgroundColor: bgTheme, borderColor: borderCol, marginTop: 8 }]}>
                 <Text style={[styles.progressLabel, { color: textSecondary }]}>Academic Pressure</Text>
-                <Text style={[styles.pressureVal, { color: errorRed }]}>High Pressure</Text>
+                <Text style={[styles.pressureVal, { color: pressureColor }]}>{stats.pressure.level} Pressure</Text>
               </View>
             </View>
 

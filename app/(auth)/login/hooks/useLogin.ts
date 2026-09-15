@@ -47,7 +47,9 @@ export function useLogin() {
         password: password,
       });
 
-      // Make the signed-in account the app's current user (no hardcoded default).
+      // Make the signed-in account the app's current user (no hardcoded default),
+      // and keep the access token so protected API calls are authenticated.
+      localDb.setAuthToken(response.data?.token ?? null);
       localDb.setCurrentUser(extractUser(response.data, email.trim()));
 
       setIsLoading(false);
