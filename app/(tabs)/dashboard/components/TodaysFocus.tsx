@@ -1,5 +1,10 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { DashboardTask } from './types';
@@ -32,11 +37,6 @@ export default function TodaysFocus({
       <Text style={[styles.cardTitle, { color: textPrimary, marginBottom: 12 }]}>
         ⭐️ Today&apos;s Focus
       </Text>
-      {tasks.length === 0 && (
-        <Text style={{ fontSize: 13, color: textSecondary, marginBottom: 8 }}>
-          No tasks due today. Enjoy the breathing room or plan ahead.
-        </Text>
-      )}
       {tasks.map((task) => (
         <View key={task.id} style={styles.focusTaskRow}>
           <TouchableOpacity
@@ -55,102 +55,112 @@ export default function TodaysFocus({
             <Text style={[styles.focusSubject, { color: primaryBrown }]}>{task.subject}</Text>
             <Text
               style={[
-                styles.focusTitle,
+                styles.priorityDot,
                 {
-                  color: textPrimary,
-                  textDecorationLine: task.completed ? 'line-through' : 'none',
+                  backgroundColor: getPriorityColor(
+                    task.priority
+                  ),
                 },
               ]}
-              numberOfLines={1}
-            >
-              {task.title}
-            </Text>
-            <Text style={[styles.focusTime, { color: textSecondary }]}>
-              Due at {task.dueTime} • {task.countdown}
-            </Text>
+            />
           </View>
-          <View
-            style={[styles.priorityDot, { backgroundColor: getPriorityColor(task.priority) }]}
+        ))
+      ) : (
+        <View style={styles.emptyState}>
+          <Feather
+            name="check-circle"
+            size={16}
+            color={primaryBrown}
           />
+
+          <Text
+            style={[
+              styles.emptyText,
+              { color: textSecondary },
+            ]}
+          >
+            You're all caught up
+          </Text>
         </View>
-      ))}
-      <TouchableOpacity
-        style={[styles.viewAllTasksBtn, { borderColor: borderCol }]}
-        onPress={() => router.push('/(tabs)/tasks/task')}
-      >
-        <Text style={[styles.viewAllTasksBtnText, { color: textPrimary }]}>View All Tasks</Text>
-      </TouchableOpacity>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 16,
+  container: {
     borderRadius: 16,
     borderWidth: 1,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
+    marginBottom: 16,
+    overflow: 'hidden',
   },
-  cardTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  focusTaskRow: {
+
+  header: {
+    height: 46,
+    paddingHorizontal: 15,
+
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ECEDEE20',
+    justifyContent: 'space-between',
   },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  focusTaskInfo: {
-    flex: 1,
-    marginLeft: 12,
-    marginRight: 8,
-  },
-  focusSubject: {
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  focusTitle: {
+
+  title: {
     fontSize: 14,
-    fontWeight: 'bold',
-    marginVertical: 2,
+    fontWeight: '700',
   },
-  focusTime: {
-    fontSize: 11,
-  },
-  priorityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  viewAllTasksBtn: {
-    height: 38,
-    borderWidth: 1,
-    borderRadius: 8,
-    justifyContent: 'center',
+
+  taskRow: {
+    minHeight: 56,
+    paddingHorizontal: 15,
+
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
   },
-  viewAllTasksBtnText: {
+
+  checkbox: {
+    width: 19,
+    height: 19,
+    borderRadius: 6,
+    borderWidth: 1.5,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  taskInfo: {
+    flex: 1,
+    marginLeft: 10,
+    marginRight: 10,
+  },
+
+  taskTitle: {
     fontSize: 13,
     fontWeight: '600',
+  },
+
+  taskTime: {
+    fontSize: 10,
+    fontWeight: '500',
+    marginTop: 3,
+  },
+
+  priorityDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+
+  emptyState: {
+    height: 50,
+    paddingHorizontal: 15,
+
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  emptyText: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginLeft: 8,
   },
 });

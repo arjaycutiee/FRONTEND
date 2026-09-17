@@ -1,6 +1,12 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { DashboardTimelineItem } from './types';
 
 interface TodaysScheduleProps {
@@ -22,126 +28,207 @@ export default function TodaysSchedule({
   textSecondary,
   primaryBrown,
 }: TodaysScheduleProps) {
+  const router = useRouter();
+
+  const today = new Date();
+
+  const day = today.getDate();
+
+  const weekday = today.toLocaleDateString('en-US', {
+    weekday: 'short',
+  });
+
+  const month = today.toLocaleDateString('en-US', {
+    month: 'long',
+  });
+
   return (
     <>
       <Text style={[styles.sectionHeading, { color: textSecondary }]}>Today&apos;s Schedule</Text>
       <View style={[styles.card, { backgroundColor: cardBg, borderColor: borderCol, paddingVertical: 12 }]}>
-        {items.length === 0 && (
-          <Text style={{ fontSize: 13, color: textSecondary, paddingHorizontal: 4 }}>
-            Nothing scheduled for today.
-          </Text>
-        )}
         {items.map((item, idx) => (
           <View key={idx} style={styles.timelineRow}>
             <Text style={[styles.timelineTimeText, { color: textSecondary }]}>
               {item.time.replace(' AM', '').replace(' PM', '')}
             </Text>
-            <View style={styles.timelineCenterCol}>
-              <View
-                style={[
-                  styles.timelineConnector,
-                  idx === items.length - 1 && { bottom: '50%' },
-                ]}
-              >
-                <View style={[styles.timelineDot, { backgroundColor: primaryBrown }]} />
-              </View>
+
+            <View
+              style={[
+                styles.iconContainer,
+                {
+                  backgroundColor: `${primaryBrown}12`,
+                },
+              ]}
+            >
+              <Feather
+                name={getTimelineIcon(item.type) as any}
+                size={13}
+                color={primaryBrown}
+              />
             </View>
-            <View style={styles.timelineDetails}>
-              <View style={styles.timelineMetaHeader}>
-                <View style={[styles.timelineIconBg, { backgroundColor: primaryBrown + '12' }]}>
-                  <Feather
-                    name={getTimelineIcon(item.type) as any}
-                    size={11}
-                    color={primaryBrown}
-                  />
-                </View>
-                <Text style={[styles.timelineType, { color: textSecondary }]}>
-                  {item.type.toUpperCase()}
-                </Text>
-              </View>
-              <Text style={[styles.timelineTitle, { color: textPrimary }]}>{item.title}</Text>
-            </View>
+
+            <Text
+              style={[
+                styles.eventTitle,
+                { color: textPrimary },
+              ]}
+              numberOfLines={1}
+            >
+              {item.title}
+            </Text>
+
+            <View
+              style={[
+                styles.dot,
+                { backgroundColor: primaryBrown },
+              ]}
+            />
           </View>
         ))}
       </View>
-    </>
+
+      {/* Empty State */}
+      {items.length === 0 && (
+        <Text
+          style={[
+            styles.emptyText,
+            { color: textSecondary },
+          ]}
+        >
+          No events scheduled for today.
+        </Text>
+      )}
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionHeading: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: 12,
-    marginTop: 4,
-  },
   card: {
-    padding: 16,
+    padding: 15,
     borderRadius: 16,
     borderWidth: 1,
-    marginBottom: 20,
+    marginBottom: 16,
+
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.03,
     shadowRadius: 6,
     elevation: 1,
   },
-  timelineRow: {
+
+  header: {
     flexDirection: 'row',
-    minHeight: 56,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  timelineTimeText: {
+
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+
+  subtitle: {
+    fontSize: 10,
+    marginTop: 2,
+  },
+
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 14,
+    marginBottom: 12,
+  },
+
+  dateBox: {
     width: 48,
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'right',
-    paddingTop: 10,
-  },
-  timelineCenterCol: {
-    width: 24,
-    alignItems: 'center',
-  },
-  timelineConnector: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 1.5,
-    backgroundColor: '#ECEDEE30',
+    height: 52,
+    borderRadius: 12,
+
     alignItems: 'center',
     justifyContent: 'center',
   },
-  timelineDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  timelineDetails: {
-    flex: 1,
-    paddingBottom: 16,
-    paddingTop: 8,
-  },
-  timelineMetaHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  timelineIconBg: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 6,
-  },
-  timelineType: {
+
+  weekday: {
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
-  timelineTitle: {
-    fontSize: 13,
+
+  day: {
+    fontSize: 21,
+    fontWeight: '800',
+    marginTop: 1,
+  },
+
+  monthContainer: {
+    marginLeft: 10,
+  },
+
+  month: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+
+  todayText: {
+    fontSize: 10,
     fontWeight: '600',
+    marginTop: 2,
+  },
+
+  schedule: {
+    borderTopWidth: 1,
+    borderTopColor: '#ECEDEE30',
+  },
+
+  scheduleRow: {
+    minHeight: 43,
+
+    flexDirection: 'row',
+    alignItems: 'center',
+
+    borderBottomWidth: 1,
+    borderBottomColor: '#ECEDEE20',
+  },
+
+  lastRow: {
+    borderBottomWidth: 0,
+  },
+
+  time: {
+    width: 43,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+
+  iconContainer: {
+    width: 27,
+    height: 27,
+    borderRadius: 8,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    marginRight: 9,
+  },
+
+  eventTitle: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginLeft: 8,
+  },
+
+  emptyText: {
+    fontSize: 11,
+    marginTop: 10,
   },
 });

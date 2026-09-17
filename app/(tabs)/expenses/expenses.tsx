@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { View, Text, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+
+import { useAppTheme } from '@/app/context/ThemeContext';
 import { useDrawer } from '@/app/(tabs)/_layout';
 
 import {
@@ -10,21 +12,42 @@ import {
   TransactionItem,
   AddTransactionModal,
 } from './components';
+
 import { useExpensesData } from './hooks/useExpensesData';
 import { expenseStyles as styles } from './styles/expenses.styles';
 
 export default function WalletScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
+  const { colorScheme } = useAppTheme();
+
   const isDark = colorScheme === 'dark';
 
-  // Theme Color Palette
+  // Theme Colors
   const primaryBrown = '#A97C50';
-  const textPrimary = isDark ? '#ECEDEE' : '#11181C';
-  const textSecondary = isDark ? '#9BA1A6' : '#666666';
-  const cardBg = isDark ? '#1E1E1E' : '#F8FAFC';
-  const borderCol = isDark ? '#2E2E2E' : '#E2E8F0';
-  const inputBg = isDark ? '#121212' : '#FFFFFF';
-  const bgTheme = isDark ? '#121212' : '#FFFFFF';
+
+  const textPrimary = isDark
+    ? '#ECEDEE'
+    : '#11181C';
+
+  const textSecondary = isDark
+    ? '#9BA1A6'
+    : '#666666';
+
+  const cardBg = isDark
+    ? '#1E1E1E'
+    : '#F8FAFC';
+
+  const borderCol = isDark
+    ? '#2E2E2E'
+    : '#E2E8F0';
+
+  const inputBg = isDark
+    ? '#121212'
+    : '#FFFFFF';
+
+  const bgTheme = isDark
+    ? '#121212'
+    : '#FFFFFF';
+
   const successGreen = '#10B981';
   const errorRed = '#EF4444';
 
@@ -50,7 +73,15 @@ export default function WalletScreen() {
   } = useExpensesData();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: bgTheme }]} edges={['top']}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        {
+          backgroundColor: bgTheme,
+        },
+      ]}
+      edges={['top']}
+    >
       {/* Header Section */}
       <WalletHeader
         onOpenDrawer={openDrawer}
@@ -72,7 +103,16 @@ export default function WalletScreen() {
       />
 
       {/* Transactions List */}
-      <Text style={[styles.sectionTitle, { color: textSecondary }]}>Recent Transactions</Text>
+      <Text
+        style={[
+          styles.sectionTitle,
+          {
+            color: textSecondary,
+          },
+        ]}
+      >
+        Recent Transactions
+      </Text>
 
       <FlatList
         data={transactions}
@@ -92,7 +132,14 @@ export default function WalletScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: textSecondary }]}>
+            <Text
+              style={[
+                styles.emptyText,
+                {
+                  color: textSecondary,
+                },
+              ]}
+            >
               No transactions tracked yet.
             </Text>
           </View>
@@ -124,3 +171,4 @@ export default function WalletScreen() {
     </SafeAreaView>
   );
 }
+

@@ -1,5 +1,12 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { DashboardSubject } from './types';
 
 interface SubjectProgressProps {
@@ -19,86 +26,142 @@ export default function SubjectProgress({
   textSecondary,
   primaryBrown,
 }: SubjectProgressProps) {
+  const router = useRouter();
+
   return (
     <>
       <Text style={[styles.sectionHeading, { color: textSecondary }]}>Subject Progress</Text>
-      {subjects.length === 0 && (
-        <View style={[styles.subjectCard, { backgroundColor: cardBg, borderColor: borderCol }]}>
-          <Text style={{ fontSize: 13, color: textSecondary }}>Add tasks with a subject to track progress here.</Text>
-        </View>
-      )}
       {subjects.map((sub, idx) => (
         <View
-          key={idx}
-          style={[styles.subjectCard, { backgroundColor: cardBg, borderColor: borderCol }]}
+          key={index}
+          style={styles.subject}
         >
-          <View style={styles.subjectHeader}>
-            <Text style={[styles.subjectName, { color: textPrimary }]}>{sub.name}</Text>
-            <Text style={[styles.subjectPercent, { color: primaryBrown }]}>{sub.completion}%</Text>
+          <View style={styles.subjectTop}>
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.subjectName,
+                { color: textPrimary },
+              ]}
+            >
+              {sub.name}
+            </Text>
+
+            <Text
+              style={[
+                styles.percent,
+                { color: primaryBrown },
+              ]}
+            >
+              {sub.completion}%
+            </Text>
           </View>
-          <View style={[styles.progressLineBg, { backgroundColor: borderCol, marginVertical: 8 }]}>
+
+          <View
+            style={[
+              styles.progressBg,
+              { backgroundColor: borderCol },
+            ]}
+          >
             <View
               style={[
-                styles.progressLineFill,
-                { backgroundColor: primaryBrown, width: `${sub.completion}%` },
+                styles.progressFill,
+                {
+                  backgroundColor: primaryBrown,
+                  width: `${sub.completion}%`,
+                },
               ]}
             />
           </View>
-          <View style={styles.subjectDetails}>
-            <Text style={[styles.subjectDetailText, { color: textSecondary }]}>
-              Pending: {sub.pending} • Completed: {sub.completed}
-            </Text>
-            <Text style={[styles.subjectDetailText, { color: textSecondary, marginTop: 2 }]}>
-              {sub.quiz}
-            </Text>
-          </View>
         </View>
       ))}
-    </>
+
+      {subjects.length === 0 && (
+        <View style={styles.empty}>
+          <Feather
+            name="book-open"
+            size={15}
+            color={primaryBrown}
+          />
+
+          <Text
+            style={[
+              styles.emptyText,
+              { color: textSecondary },
+            ]}
+          >
+            No subject progress yet
+          </Text>
+        </View>
+      )}
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionHeading: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: 12,
-    marginTop: 4,
-  },
-  subjectCard: {
-    borderRadius: 14,
+  card: {
+    borderRadius: 16,
     borderWidth: 1,
-    padding: 14,
-    marginBottom: 10,
+    padding: 15,
+    marginBottom: 16,
   },
-  subjectHeader: {
+
+  header: {
+    height: 28,
     flexDirection: 'row',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    marginBottom: 4,
   },
-  subjectName: {
+
+  title: {
     fontSize: 14,
-    fontWeight: 'bold',
-  },
-  subjectPercent: {
-    fontSize: 12,
     fontWeight: '700',
   },
-  progressLineBg: {
+
+  subject: {
+    paddingVertical: 9,
+  },
+
+  subjectTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+
+  subjectName: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '600',
+    marginRight: 10,
+  },
+
+  percent: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+
+  progressBg: {
+    width: '100%',
     height: 4,
     borderRadius: 2,
     overflow: 'hidden',
   },
-  progressLineFill: {
+
+  progressFill: {
     height: '100%',
     borderRadius: 2,
   },
-  subjectDetails: {
-    marginTop: 6,
+
+  empty: {
+    height: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  subjectDetailText: {
+
+  emptyText: {
     fontSize: 11,
+    marginLeft: 7,
   },
 });

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppTheme } from '@/app/context/ThemeContext';
 
 import {
   AssistantHeader,
@@ -17,7 +17,9 @@ import { assistantStyles as styles } from './styles';
 
 export default function AssistantScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme() ?? 'light';
+
+  // Use GabAi manual theme
+  const { colorScheme } = useAppTheme();
   const isDark = colorScheme === 'dark';
 
   // GabAi Design Colors
@@ -42,14 +44,27 @@ export default function AssistantScreen() {
   } = useAssistant();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: bgTheme }]} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: bgTheme },
+      ]}
+      edges={['top', 'bottom']}
+    >
       {/* Header bar */}
       <AssistantHeader
         textPrimary={textPrimary}
         textSecondary={textSecondary}
         primaryBrown={primaryBrown}
         borderCol={borderCol}
-        onBack={() => router.back()}
+        onBack={() => {
+          if (router.canGoBack()) {
+            router.back();
+            return;
+          }
+
+          router.replace('/(tabs)/dashboard/dashboard');
+        }}
         onReset={resetChat}
       />
 
@@ -95,12 +110,14 @@ export default function AssistantScreen() {
               )}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.messageList}
-              ListFooterComponent={isTyping ? <TypingIndicator /> : null}
+              ListFooterComponent={
+                isTyping ? <TypingIndicator /> : null
+              }
               onContentSizeChange={scrollToBottom}
             />
           )}
 
-          {/* Quick Actions Action bar above Input */}
+          {/* Quick Actions bar above Input */}
           <QuickActionsBar
             cardBg={cardBg}
             borderCol={borderCol}
