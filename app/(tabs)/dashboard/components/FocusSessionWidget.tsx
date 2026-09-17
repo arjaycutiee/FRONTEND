@@ -20,7 +20,7 @@ export default function FocusSessionWidget({
   textSecondary,
   primaryBrown,
   timerDisplay = '25:00',
-  targetDisplay = '1.5 hrs remaining',
+  targetDisplay = 'Remaining Study Target: 1.5 hrs',
 }: FocusSessionWidgetProps) {
   const router = useRouter();
 

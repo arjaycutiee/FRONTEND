@@ -1,5 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { localDb } from '@/app/services/localDb';
+import { todayISO, addDaysISO } from '@/utils/date';
 import { Message, ActionButton, CustomWidgetType } from '../types';
 
 export const formatTimerTime = (totalSecs: number): string => {
@@ -121,7 +122,7 @@ export const processAssistantQuery = async (
     norm.includes('list today tasks') ||
     norm.includes('tasks for today')
   ) {
-    const today = '2026-07-26';
+    const today = todayISO();
     const todayTasks = localDb.getTasks().filter((t) => t.dueDate === today);
 
     if (todayTasks.length === 0) {
@@ -176,7 +177,7 @@ export const processAssistantQuery = async (
     norm.includes('how many classes do i have today') ||
     norm.includes('show today schedule')
   ) {
-    const today = '2026-07-26';
+    const today = todayISO();
     const todayEvents = localDb.getEvents().filter((e) => e.date === today && (e.category === 'Class' || e.category === 'Exam' || e.category === 'Meeting'));
 
     if (todayEvents.length === 0) {
@@ -256,7 +257,7 @@ export const processAssistantQuery = async (
     norm.includes('show upcoming deadlines') ||
     norm.includes('deadlines upcoming')
   ) {
-    const today = '2026-07-26';
+    const today = todayISO();
     const tasks = localDb.getTasks();
     const incompleteDeadlines = tasks
       .filter((t) => !t.completed && t.dueDate >= today)
@@ -289,7 +290,7 @@ export const processAssistantQuery = async (
     norm.includes('late tasks') ||
     norm.includes('do i have overdue tasks')
   ) {
-    const today = '2026-07-26';
+    const today = todayISO();
     const overdueTasks = localDb.getTasks().filter((t) => !t.completed && t.dueDate < today);
 
     if (overdueTasks.length === 0) {
@@ -381,7 +382,7 @@ export const processAssistantQuery = async (
     norm.includes('what is tomorrow schedule') ||
     norm.includes('tomorrow')
   ) {
-    const tomorrow = '2026-07-27';
+    const tomorrow = addDaysISO(todayISO(), 1);
     const tomorrowEvents = localDb.getEvents().filter((e) => e.date === tomorrow);
     const tomorrowTasks = localDb.getTasks().filter((t) => t.dueDate === tomorrow);
 
@@ -483,7 +484,7 @@ export const processAssistantQuery = async (
     const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     const highPriorityPending = tasks.filter((t) => t.priority === 'High' && !t.completed).length;
-    const overdue = tasks.filter((t) => !t.completed && t.dueDate < '2026-07-26').length;
+    const overdue = tasks.filter((t) => !t.completed && t.dueDate < todayISO()).length;
 
     const text = `Here is your current Academic Productivity report:\n\n` +
       `📈 **Task Completion Rate**: ${rate}% (${completed}/${total} tasks done)\n` +

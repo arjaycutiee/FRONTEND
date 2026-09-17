@@ -77,6 +77,11 @@ export default function DashboardScreen() {
     deadlines,
     subjects,
     timelineItems,
+    reminderText,
+    insights,
+    activities,
+    pressure,
+    overview,
     isRefreshing,
     onRefresh,
     handleToggleComplete,
@@ -126,20 +131,17 @@ export default function DashboardScreen() {
         />
 
         {/* 3. Smart Reminders */}
-        <SmartReminders
-          warningOrange={warningOrange}
-          textPrimary={textPrimary}
-        />
+        <SmartReminders warningOrange={warningOrange} textPrimary={textPrimary} />
 
         {/* 4. Academic Pressure Widget */}
         <AcademicPressure
-  cardBg={cardBg}
-  borderCol={borderCol}
-  textPrimary={textPrimary}
-  textSecondary={textSecondary}
-  errorRed={errorRed}
-  primaryBrown={primaryBrown}
-/>
+          cardBg={cardBg}
+          borderCol={borderCol}
+          textPrimary={textPrimary}
+          textSecondary={textSecondary}
+          errorRed={errorRed}
+          primaryBrown={primaryBrown}
+        />
 
         {/* 5. Today's Focus Card */}
         <TodaysFocus
@@ -159,10 +161,10 @@ export default function DashboardScreen() {
           borderCol={borderCol}
           textPrimary={textPrimary}
           textSecondary={textSecondary}
-          tasksCount={4}
-          deadlinesCount={5}
-          classesCount={2}
-          weeklySpend="₱1,250"
+          tasksCount={overview.tasksToday}
+          deadlinesCount={overview.deadlines}
+          classesCount={overview.classesToday}
+          weeklySpend={overview.weeklySpend}
         />
 
         {/* 7. Today's Schedule Timeline */}
@@ -206,8 +208,18 @@ export default function DashboardScreen() {
           primaryBrown={primaryBrown}
         />
 
-        {/* 12. Recent Activity */}
+        {/* 11. Productivity Insights */}
+        <ProductivityInsights
+          cardBg={cardBg}
+          borderCol={borderCol}
+          textSecondary={textSecondary}
+          successGreen={successGreen}
+          primaryBrown={primaryBrown}
+        />
+
+        {/* 12. Recent Activity Stream */}
         <RecentActivity
+          activities={activities}
           cardBg={cardBg}
           borderCol={borderCol}
           textSecondary={textSecondary}

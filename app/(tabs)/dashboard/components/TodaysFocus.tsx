@@ -33,102 +33,27 @@ export default function TodaysFocus({
   const router = useRouter();
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: cardBg,
-          borderColor: borderCol,
-        },
-      ]}
-    >
-      {/* Header */}
-      <TouchableOpacity
-        style={styles.header}
-        activeOpacity={0.7}
-        onPress={() =>
-          router.push('/(tabs)/tasks/task' as any)
-        }
-      >
-        <Text style={[styles.title, { color: textPrimary }]}>
-          Today's Focus
-        </Text>
-
-        <Feather
-          name="chevron-right"
-          size={17}
-          color={textSecondary}
-        />
-      </TouchableOpacity>
-
-      {/* Tasks */}
-      {tasks.length > 0 ? (
-        tasks.slice(0, 3).map((task) => (
-          <View
-            key={task.id}
-            style={styles.taskRow}
+    <View style={[styles.card, { backgroundColor: cardBg, borderColor: borderCol }]}>
+      <Text style={[styles.cardTitle, { color: textPrimary, marginBottom: 12 }]}>
+        ⭐️ Today&apos;s Focus
+      </Text>
+      {tasks.map((task) => (
+        <View key={task.id} style={styles.focusTaskRow}>
+          <TouchableOpacity
+            onPress={() => onToggleComplete(task.id)}
+            style={[
+              styles.checkbox,
+              {
+                borderColor: borderCol,
+                backgroundColor: task.completed ? primaryBrown + '12' : 'transparent',
+              },
+            ]}
           >
-            {/* Checkbox */}
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => onToggleComplete(task.id)}
-              style={[
-                styles.checkbox,
-                {
-                  borderColor: task.completed
-                    ? primaryBrown
-                    : borderCol,
-                  backgroundColor: task.completed
-                    ? `${primaryBrown}15`
-                    : 'transparent',
-                },
-              ]}
-            >
-              {task.completed && (
-                <Feather
-                  name="check"
-                  size={11}
-                  color={primaryBrown}
-                />
-              )}
-            </TouchableOpacity>
-
-            {/* Task */}
-            <TouchableOpacity
-              style={styles.taskInfo}
-              activeOpacity={0.7}
-              onPress={() =>
-                router.push('/(tabs)/tasks/task' as any)
-              }
-            >
-              <Text
-                numberOfLines={1}
-                style={[
-                  styles.taskTitle,
-                  {
-                    color: textPrimary,
-                    textDecorationLine: task.completed
-                      ? 'line-through'
-                      : 'none',
-                  },
-                ]}
-              >
-                {task.title}
-              </Text>
-
-              <Text
-                numberOfLines={1}
-                style={[
-                  styles.taskTime,
-                  { color: textSecondary },
-                ]}
-              >
-                {task.dueTime} · {task.countdown}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Priority */}
-            <View
+            {task.completed && <Feather name="check" size={14} color={primaryBrown} />}
+          </TouchableOpacity>
+          <View style={styles.focusTaskInfo}>
+            <Text style={[styles.focusSubject, { color: primaryBrown }]}>{task.subject}</Text>
+            <Text
               style={[
                 styles.priorityDot,
                 {

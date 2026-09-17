@@ -43,108 +43,13 @@ export default function TodaysSchedule({
   });
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.75}
-      onPress={() =>
-        router.push('/(tabs)/calendar/calendar' as any)
-      }
-      style={[
-        styles.card,
-        {
-          backgroundColor: cardBg,
-          borderColor: borderCol,
-        },
-      ]}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={[styles.sectionTitle, { color: textPrimary }]}>
-            Today's Schedule
-          </Text>
-
-          <Text style={[styles.subtitle, { color: textSecondary }]}>
-            Your upcoming activities
-          </Text>
-        </View>
-
-        <Feather
-          name="chevron-right"
-          size={18}
-          color={textSecondary}
-        />
-      </View>
-
-      {/* Mini Calendar Header */}
-      <View style={styles.dateContainer}>
-        <View
-          style={[
-            styles.dateBox,
-            {
-              backgroundColor: `${primaryBrown}12`,
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.weekday,
-              { color: primaryBrown },
-            ]}
-          >
-            {weekday.toUpperCase()}
-          </Text>
-
-          <Text
-            style={[
-              styles.day,
-              { color: primaryBrown },
-            ]}
-          >
-            {day}
-          </Text>
-        </View>
-
-        <View style={styles.monthContainer}>
-          <Text
-            style={[
-              styles.month,
-              { color: textPrimary },
-            ]}
-          >
-            {month}
-          </Text>
-
-          <Text
-            style={[
-              styles.todayText,
-              { color: primaryBrown },
-            ]}
-          >
-            Today
-          </Text>
-        </View>
-      </View>
-
-      {/* Schedule */}
-      <View style={styles.schedule}>
-        {items.slice(0, 3).map((item, index) => (
-          <View
-            key={index}
-            style={[
-              styles.scheduleRow,
-              index === Math.min(items.length, 3) - 1 &&
-                styles.lastRow,
-            ]}
-          >
-            <Text
-              style={[
-                styles.time,
-                { color: textSecondary },
-              ]}
-            >
-              {item.time
-                .replace(' AM', '')
-                .replace(' PM', '')}
+    <>
+      <Text style={[styles.sectionHeading, { color: textSecondary }]}>Today&apos;s Schedule</Text>
+      <View style={[styles.card, { backgroundColor: cardBg, borderColor: borderCol, paddingVertical: 12 }]}>
+        {items.map((item, idx) => (
+          <View key={idx} style={styles.timelineRow}>
+            <Text style={[styles.timelineTimeText, { color: textSecondary }]}>
+              {item.time.replace(' AM', '').replace(' PM', '')}
             </Text>
 
             <View

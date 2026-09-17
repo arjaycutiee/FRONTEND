@@ -2,12 +2,23 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { localDb } from '@/app/services/localDb';
-import { DEFAULT_USER_PROFILE } from '../constants/profileConfig';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { UserProfile, ProfileStatItem } from '../types';
 
 export function useProfileData() {
   const router = useRouter();
-  const [userProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
+
+  // Signed-in account (no hardcoded default)
+  const currentUser = useCurrentUser();
+  const userProfile: UserProfile = useMemo(
+    () => ({
+      name: currentUser.name,
+      email: currentUser.email,
+      course: currentUser.course,
+      initials: currentUser.initials,
+    }),
+    [currentUser]
+  );
 
   // Sync state from central database
   const [tasks, setTasks] = useState(() => localDb.getTasks());
@@ -74,6 +85,7 @@ export function useProfileData() {
           text: 'Log Out',
           style: 'destructive',
           onPress: () => {
+            localDb.clearCurrentUser();
             router.replace('/(auth)/login/login');
           },
         },

@@ -6,10 +6,10 @@ interface QuickOverviewProps {
   borderCol: string;
   textPrimary: string;
   textSecondary: string;
-  tasksCount?: number;
-  deadlinesCount?: number;
-  classesCount?: number;
-  weeklySpend?: string;
+  tasksCount: number;
+  deadlinesCount: number;
+  classesCount: number;
+  weeklySpend: string;
 }
 
 export default function QuickOverview({
@@ -17,10 +17,10 @@ export default function QuickOverview({
   borderCol,
   textPrimary,
   textSecondary,
-  tasksCount = 4,
-  deadlinesCount = 5,
-  classesCount = 2,
-  weeklySpend = '₱1,250',
+  tasksCount,
+  deadlinesCount,
+  classesCount,
+  weeklySpend,
 }: QuickOverviewProps) {
   const stats = [
     { value: tasksCount, label: 'Tasks' },

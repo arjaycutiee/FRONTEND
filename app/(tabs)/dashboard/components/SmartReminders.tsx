@@ -6,7 +6,7 @@ import { Feather } from '@expo/vector-icons';
 interface SmartRemindersProps {
   warningOrange: string;
   textPrimary: string;
-  reminderText?: string;
+  reminderText: string;
 }
 
 export default function SmartReminders({

@@ -7,9 +7,7 @@ import {
   Alert,
 } from 'react-native';
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
-import { PROFILE_SECTIONS } from '../constants/profileConfig';
 import { profileStyles as styles } from '../styles/profile.styles';
-import { useAppTheme } from '@/app/context/ThemeContext';
 
 interface ProfileSettingsGroupProps {
   cardTheme: string;

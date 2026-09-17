@@ -83,7 +83,7 @@ export default function LinkToScheduleModal({
             style={[styles.modalTextInput, { backgroundColor: inputBg, borderColor: borderCol, color: textPrimary }]}
             value={dateInput}
             onChangeText={onDateChange}
-            placeholder="2026-08-15"
+            placeholder="YYYY-MM-DD"
             placeholderTextColor={textSecondary}
           />
 

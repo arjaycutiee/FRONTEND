@@ -10,11 +10,6 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import {
-  getNotifications,
-  subscribeToNotifications,
-} from '@/app/notifications/notificationService';
-import { Notification } from '@/app/notifications/types';
 
 interface DashboardHeaderProps {
   onOpenDrawer: () => void;
@@ -28,114 +23,16 @@ export default function DashboardHeader({
   textSecondary,
 }: DashboardHeaderProps) {
   const router = useRouter();
-  const [notificationsVisible, setNotificationsVisible] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    getNotifications().then((storedNotifications) => {
-      if (isMounted) {
-        setNotifications(storedNotifications);
-      }
-    });
-
-    const unsubscribe = subscribeToNotifications(setNotifications);
-
-    return () => {
-      isMounted = false;
-      unsubscribe();
-    };
-  }, []);
-
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
 
   return (
-    <>
-      <View style={styles.container}>
-        {/* LEFT */}
-        <View style={styles.leftSection}>
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={onOpenDrawer}
-            activeOpacity={0.8}
-          >
-            <Feather
-              name="menu"
-              size={22}
-              color="#FFFFFF"
-            />
-          </TouchableOpacity>
-
-          <View style={styles.greetingContainer}>
-            <Text
-              style={[
-                styles.welcomeText,
-                { color: textPrimary },
-              ]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-            >
-              Welcome back, Vience 👋
-            </Text>
-
-            <View style={styles.dateRow}>
-              <Feather
-                name="calendar"
-                size={13}
-                color={textSecondary}
-              />
-
-              <Text
-                style={[
-                  styles.dateText,
-                  { color: textSecondary },
-                ]}
-                numberOfLines={1}
-              >
-                {today}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* RIGHT */}
-        <View style={styles.rightSection}>
-          <TouchableOpacity
-            style={styles.notificationButton}
-            onPress={() => setNotificationsVisible(true)}
-            activeOpacity={0.8}
-          >
-            <Feather
-              name="bell"
-              size={20}
-              color="#4E342E"
-            />
-
-            {/* Notification indicator */}
-            {notifications.some((notification) => !notification.read) && (
-              <View style={styles.notificationDot} />
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.avatarButton}
-            onPress={() =>
-              router.push('/(tabs)/profile/profile')
-            }
-            activeOpacity={0.8}
-          >
-            <Image
-              source={{
-                uri: 'https://i.pravatar.cc/150?img=12',
-              }}
-              style={styles.avatar}
-            />
-          </TouchableOpacity>
+    <View style={styles.header}>
+      <View style={styles.headerLeft}>
+        <TouchableOpacity onPress={onOpenDrawer} style={styles.menuButton}>
+          <Feather name="menu" size={24} color={textPrimary} />
+        </TouchableOpacity>
+        <View>
+          <Text style={[styles.greetingText, { color: textPrimary }]}>{greeting}, Vience!</Text>
+          <Text style={[styles.dateText, { color: textSecondary }]}>Saturday, July 25</Text>
         </View>
       </View>
 

@@ -2,41 +2,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { localDb, Task, SubTask } from '@/app/services/localDb';
-import {
-  TaskSubTab,
-  TaskCategory,
-  TaskPriority,
-  TaskDifficulty,
-  TaskRepeat,
-} from '../types';
-
-// ------------------------------------------------------
-// DATE HELPERS
-// ------------------------------------------------------
-
-const formatLocalDate = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
-};
-
-const getTodayAndTomorrow = () => {
-  const today = new Date();
-
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-
-  return {
-    todayStr: formatLocalDate(today),
-    tomorrowStr: formatLocalDate(tomorrow),
-  };
-};
-
-// ------------------------------------------------------
-// TASK DATA HOOK
-// ------------------------------------------------------
+import { TaskSubTab, TaskCategory, TaskPriority, TaskDifficulty, TaskRepeat } from '../types';
 
 export function useTaskData() {
   // ----------------------------------------------------
@@ -114,39 +80,17 @@ export function useTaskData() {
 
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
-
-  const [newSubject, setNewSubject] =
-    useState('Capstone Paper');
-
-  const [newCategory, setNewCategory] =
-    useState<TaskCategory>('Academic');
-
-  const [newPriority, setNewPriority] =
-    useState<TaskPriority>('Medium');
-
-  const [newDifficulty, setNewDifficulty] =
-    useState<TaskDifficulty>('Medium');
-
-  const [newDuration, setNewDuration] =
-    useState('1.5');
-
-  const [newDueDate, setNewDueDate] =
-    useState(() => formatLocalDate(new Date()));
-
-  const [newDueTime, setNewDueTime] =
-    useState('12:00');
-
-  const [newHasReminder, setNewHasReminder] =
-    useState(false);
-
-  const [newRepeat, setNewRepeat] =
-    useState<TaskRepeat>('None');
-
-  const [newSubTaskInput, setNewSubTaskInput] =
-    useState('');
-
-  const [newSubTasksList, setNewSubTasksList] =
-    useState<string[]>([]);
+  const [newSubject, setNewSubject] = useState('Capstone Paper');
+  const [newCategory, setNewCategory] = useState<TaskCategory>('Academic');
+  const [newPriority, setNewPriority] = useState<TaskPriority>('Medium');
+  const [newDifficulty, setNewDifficulty] = useState<TaskDifficulty>('Medium');
+  const [newDuration, setNewDuration] = useState('1.5');
+  const [newDueDate, setNewDueDate] = useState('2026-07-25');
+  const [newDueTime, setNewDueTime] = useState('12:00');
+  const [newHasReminder, setNewHasReminder] = useState(false);
+  const [newRepeat, setNewRepeat] = useState<TaskRepeat>('None');
+  const [newSubTaskInput, setNewSubTaskInput] = useState('');
+  const [newSubTasksList, setNewSubTasksList] = useState<string[]>([]);
 
   // ----------------------------------------------------
   // SEARCH
@@ -252,10 +196,11 @@ export function useTaskData() {
     };
   }, [activeTasks]);
 
-  // ----------------------------------------------------
-  // FILTERED TASKS
-  // ----------------------------------------------------
+  // Date constants (today is July 25, 2026)
+  const todayStr = '2026-07-25';
+  const tomorrowStr = '2026-07-26';
 
+  // Filtered Tasks
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       // Search

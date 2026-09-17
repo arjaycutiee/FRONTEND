@@ -29,39 +29,9 @@ export default function SubjectProgress({
   const router = useRouter();
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.75}
-      onPress={() =>
-        router.push('/(tabs)/tasks/task' as any)
-      }
-      style={[
-        styles.card,
-        {
-          backgroundColor: cardBg,
-          borderColor: borderCol,
-        },
-      ]}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text
-          style={[
-            styles.title,
-            { color: textPrimary },
-          ]}
-        >
-          Subject Progress
-        </Text>
-
-        <Feather
-          name="chevron-right"
-          size={17}
-          color={textSecondary}
-        />
-      </View>
-
-      {/* Subjects */}
-      {subjects.slice(0, 4).map((sub, index) => (
+    <>
+      <Text style={[styles.sectionHeading, { color: textSecondary }]}>Subject Progress</Text>
+      {subjects.map((sub, idx) => (
         <View
           key={index}
           style={styles.subject}

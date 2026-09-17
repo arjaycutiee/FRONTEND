@@ -2,37 +2,41 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-export interface ActivityItem {
+export interface InsightItem {
   icon: React.ComponentProps<typeof Feather>['name'];
+  tone: 'success' | 'accent' | 'warning';
   text: string;
 }
 
-interface RecentActivityProps {
-  activities: ActivityItem[];
+interface ProductivityInsightsProps {
+  insights: InsightItem[];
   cardBg: string;
   borderCol: string;
   textSecondary: string;
+  successGreen: string;
+  warningOrange: string;
   primaryBrown: string;
 }
 
-export default function RecentActivity({
-  activities,
+export default function ProductivityInsights({
+  insights,
   cardBg,
   borderCol,
   textSecondary,
+  successGreen,
+  warningOrange,
   primaryBrown,
-}: RecentActivityProps) {
+}: ProductivityInsightsProps) {
+  const toneColor = { success: successGreen, accent: primaryBrown, warning: warningOrange };
+
   return (
     <>
-      <Text style={[styles.sectionHeading, { color: textSecondary }]}>Recent Activity</Text>
+      <Text style={[styles.sectionHeading, { color: textSecondary }]}>Productivity Insights</Text>
       <View style={[styles.card, { backgroundColor: cardBg, borderColor: borderCol }]}>
-        {activities.length === 0 && (
-          <Text style={[styles.activityText, { color: textSecondary }]}>No recent activity yet.</Text>
-        )}
-        {activities.map((act, idx) => (
-          <View key={idx} style={[styles.activityRow, idx > 0 && { marginTop: 10 }]}>
-            <Feather name={act.icon} size={14} color={primaryBrown} style={{ marginRight: 8 }} />
-            <Text style={[styles.activityText, { color: textSecondary }]}>{act.text}</Text>
+        {insights.map((item, idx) => (
+          <View key={idx} style={[styles.insightRow, idx > 0 && { marginTop: 8 }]}>
+            <Feather name={item.icon} size={14} color={toneColor[item.tone]} style={{ marginRight: 8 }} />
+            <Text style={[styles.insightText, { color: textSecondary }]}>{item.text}</Text>
           </View>
         ))}
       </View>
@@ -60,11 +64,11 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 1,
   },
-  activityRow: {
+  insightRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  activityText: {
+  insightText: {
     fontSize: 12,
     flex: 1,
   },

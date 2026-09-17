@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
 import { localDb } from '@/app/services/localDb';
 import { CalendarEvent, ChecklistItem, EventCategory, EventPriority, CalendarViewMode } from '../types';
+import { todayISO } from '@/utils/date';
 
 export function useCalendarData() {
   // Calendar States hooked up to central database
@@ -20,7 +21,7 @@ export function useCalendarData() {
     return unsubscribe;
   }, []);
 
-  const [selectedDate, setSelectedDate] = useState<string>('2026-07-26'); // Today (July 26, 2026)
+  const [selectedDate, setSelectedDate] = useState<string>(() => todayISO());
   const [viewMode, setViewMode] = useState<CalendarViewMode>('month');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -38,7 +39,7 @@ export function useCalendarData() {
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState<EventCategory>('Class');
   const [newPriority, setNewPriority] = useState<EventPriority>('Medium');
-  const [newDate, setNewDate] = useState('2026-07-24');
+  const [newDate, setNewDate] = useState(() => todayISO());
   const [newTime, setNewTime] = useState('09:00');
   const [newDuration, setNewDuration] = useState('60');
   const [newIsAllDay, setNewIsAllDay] = useState(false);

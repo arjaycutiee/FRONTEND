@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { TaskTheme } from '../../types';
 import type { useTaskData } from '../../hooks/useTaskData';
 import { taskStyles as styles } from '../../styles/task.styles';
+import { todayISO, addDaysISO, getLastNDays } from '@/utils/date';
 
 interface TaskAnalyticsViewProps {
   taskData: ReturnType<typeof useTaskData>;
@@ -11,18 +12,52 @@ interface TaskAnalyticsViewProps {
 }
 
 export default function TaskAnalyticsView({ taskData, theme }: TaskAnalyticsViewProps) {
-  const { totalTasks, completedTasks } = taskData;
+  const { tasks, totalTasks, completedTasks } = taskData;
   const { cardBg, borderCol, textPrimary, textSecondary, primaryBrown, successGreen } = theme;
 
-  const weeklyCompletion = [
-    { day: 'Mon', count: 4, height: '60%' },
-    { day: 'Tue', count: 6, height: '90%' },
-    { day: 'Wed', count: 3, height: '45%' },
-    { day: 'Thu', count: 5, height: '75%' },
-    { day: 'Fri', count: 2, height: '30%' },
-    { day: 'Sat', count: 7, height: '100%' },
-    { day: 'Sun', count: 1, height: '15%' },
-  ];
+  const today = todayISO();
+  const weekAgo = addDaysISO(today, -7);
+  const twoWeeksAgo = addDaysISO(today, -14);
+
+  // Everything below is derived from the user's own tasks — no demo numbers.
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const avgDuration = totalTasks > 0 ? tasks.reduce((sum, t) => sum + t.duration, 0) / totalTasks : 0;
+
+  const completedThisWeek = tasks.filter((t) => t.completed && t.dueDate > weekAgo && t.dueDate <= today).length;
+  const completedLastWeek = tasks.filter((t) => t.completed && t.dueDate > twoWeeksAgo && t.dueDate <= weekAgo).length;
+  const weeklyDelta =
+    completedLastWeek === 0
+      ? completedThisWeek > 0 ? 100 : 0
+      : Math.round(((completedThisWeek - completedLastWeek) / completedLastWeek) * 100);
+
+  // Completed tasks per day over the last 7 days (oldest first)
+  const weeklyCompletion = getLastNDays(7, today).map((day) => ({
+    day: day.label,
+    count: tasks.filter((t) => t.completed && t.dueDate === day.full).length,
+  }));
+  const maxCount = Math.max(1, ...weeklyCompletion.map((d) => d.count));
+
+  const highPriorityDone = tasks.filter((t) => t.completed && t.priority === 'High').length;
+  const badges = [
+    completedTasks >= 1 && {
+      icon: 'zap' as const,
+      color: primaryBrown,
+      title: 'First Win',
+      subtitle: `Completed ${completedTasks} task${completedTasks === 1 ? '' : 's'} so far.`,
+    },
+    highPriorityDone >= 3 && {
+      icon: 'check-circle' as const,
+      color: successGreen,
+      title: 'Priority Crusher',
+      subtitle: `Finished ${highPriorityDone} high priority tasks.`,
+    },
+    completionRate >= 80 && totalTasks >= 5 && {
+      icon: 'award' as const,
+      color: primaryBrown,
+      title: 'Consistent',
+      subtitle: `${completionRate}% of your tasks are done.`,
+    },
+  ].filter(Boolean) as { icon: 'zap' | 'check-circle' | 'award'; color: string; title: string; subtitle: string }[];
 
   return (
     <View style={styles.analyticsContainer}>
@@ -30,25 +65,27 @@ export default function TaskAnalyticsView({ taskData, theme }: TaskAnalyticsView
       <View style={styles.analyticsGrid}>
         <View style={[styles.analyticsCard, { backgroundColor: cardBg, borderColor: borderCol }]}>
           <Feather name="award" size={18} color={primaryBrown} />
-          <Text style={[styles.analyticsNum, { color: textPrimary }]}>87%</Text>
-          <Text style={[styles.analyticsLabel, { color: textSecondary }]}>On-Time Completion</Text>
+          <Text style={[styles.analyticsNum, { color: textPrimary }]}>{completionRate}%</Text>
+          <Text style={[styles.analyticsLabel, { color: textSecondary }]}>Completion Rate</Text>
         </View>
         <View style={[styles.analyticsCard, { backgroundColor: cardBg, borderColor: borderCol }]}>
           <Feather name="clock" size={18} color={primaryBrown} />
-          <Text style={[styles.analyticsNum, { color: textPrimary }]}>2.4 hrs</Text>
-          <Text style={[styles.analyticsLabel, { color: textSecondary }]}>Avg Study Duration</Text>
+          <Text style={[styles.analyticsNum, { color: textPrimary }]}>{avgDuration.toFixed(1)} hrs</Text>
+          <Text style={[styles.analyticsLabel, { color: textSecondary }]}>Avg Task Duration</Text>
         </View>
         <View style={[styles.analyticsCard, { backgroundColor: cardBg, borderColor: borderCol }]}>
           <Feather name="zap" size={18} color={primaryBrown} />
           <Text style={[styles.analyticsNum, { color: textPrimary }]}>
             {completedTasks}/{totalTasks}
           </Text>
-          <Text style={[styles.analyticsLabel, { color: textSecondary }]}>Completed Rate</Text>
+          <Text style={[styles.analyticsLabel, { color: textSecondary }]}>Tasks Completed</Text>
         </View>
         <View style={[styles.analyticsCard, { backgroundColor: cardBg, borderColor: borderCol }]}>
           <Feather name="trending-up" size={18} color={primaryBrown} />
-          <Text style={[styles.analyticsNum, { color: textPrimary }]}>+14%</Text>
-          <Text style={[styles.analyticsLabel, { color: textSecondary }]}>Weekly Productivity</Text>
+          <Text style={[styles.analyticsNum, { color: textPrimary }]}>
+            {weeklyDelta >= 0 ? '+' : ''}{weeklyDelta}%
+          </Text>
+          <Text style={[styles.analyticsLabel, { color: textSecondary }]}>vs Last Week</Text>
         </View>
       </View>
 
@@ -64,7 +101,10 @@ export default function TaskAnalyticsView({ taskData, theme }: TaskAnalyticsView
                 <View
                   style={[
                     styles.chartBarFill,
-                    { height: bar.height as any, backgroundColor: primaryBrown },
+                    {
+                      height: `${bar.count === 0 ? 4 : Math.round((bar.count / maxCount) * 100)}%`,
+                      backgroundColor: bar.count === 0 ? borderCol : primaryBrown,
+                    },
                   ]}
                 />
               </View>
@@ -79,46 +119,24 @@ export default function TaskAnalyticsView({ taskData, theme }: TaskAnalyticsView
         <Text style={[styles.sectionHeadingTitle, { color: textPrimary, marginBottom: 12 }]}>
           🏆 Academic Badges
         </Text>
+        {badges.length === 0 && (
+          <Text style={{ fontSize: 13, color: textSecondary }}>
+            Complete tasks to start earning badges.
+          </Text>
+        )}
         <View style={styles.badgeRow}>
-          <View
-            style={[
-              styles.badgeItemCard,
-              { backgroundColor: cardBg, borderColor: borderCol },
-            ]}
-          >
+          {badges.map((badge) => (
             <View
-              style={[
-                styles.badgeIconBg,
-                { backgroundColor: primaryBrown + '15' },
-              ]}
+              key={badge.title}
+              style={[styles.badgeItemCard, { backgroundColor: cardBg, borderColor: borderCol }]}
             >
-              <Feather name="zap" size={18} color={primaryBrown} />
+              <View style={[styles.badgeIconBg, { backgroundColor: badge.color + '15' }]}>
+                <Feather name={badge.icon} size={18} color={badge.color} />
+              </View>
+              <Text style={[styles.badgeCardTitle, { color: textPrimary }]}>{badge.title}</Text>
+              <Text style={[styles.badgeCardSubtitle, { color: textSecondary }]}>{badge.subtitle}</Text>
             </View>
-            <Text style={[styles.badgeCardTitle, { color: textPrimary }]}>5-Day Streak</Text>
-            <Text style={[styles.badgeCardSubtitle, { color: textSecondary }]}>
-              Completed daily goals 5 days in a row!
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.badgeItemCard,
-              { backgroundColor: cardBg, borderColor: borderCol },
-            ]}
-          >
-            <View
-              style={[
-                styles.badgeIconBg,
-                { backgroundColor: successGreen + '15' },
-              ]}
-            >
-              <Feather name="check-circle" size={18} color={successGreen} />
-            </View>
-            <Text style={[styles.badgeCardTitle, { color: textPrimary }]}>Speed Demon</Text>
-            <Text style={[styles.badgeCardSubtitle, { color: textSecondary }]}>
-              Finished 3 high priority tasks ahead of deadline.
-            </Text>
-          </View>
+          ))}
         </View>
       </View>
     </View>

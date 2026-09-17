@@ -33,39 +33,9 @@ export default function UpcomingDeadlines({
   const router = useRouter();
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.75}
-      onPress={() =>
-        router.push('/(tabs)/tasks/task' as any)
-      }
-      style={[
-        styles.card,
-        {
-          backgroundColor: cardBg,
-          borderColor: borderCol,
-        },
-      ]}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text
-          style={[
-            styles.title,
-            { color: textPrimary },
-          ]}
-        >
-          Upcoming Deadlines
-        </Text>
-
-        <Feather
-          name="chevron-right"
-          size={17}
-          color={textSecondary}
-        />
-      </View>
-
-      {/* Deadlines */}
-      {deadlines.slice(0, 4).map((dl) => (
+    <>
+      <Text style={[styles.sectionHeading, { color: textSecondary }]}>Upcoming Deadlines</Text>
+      {deadlines.map((dl) => (
         <View
           key={dl.id}
           style={styles.deadline}

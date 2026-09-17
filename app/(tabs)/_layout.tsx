@@ -2,13 +2,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import { Feather } from '@expo/vector-icons';
 import { Tabs, usePathname, useRouter } from 'expo-router';
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -22,6 +16,8 @@ import {
 } from 'react-native';
 
 import { localDb } from '@/app/services/localDb';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useWorkspaceStats } from '@/hooks/use-workspace-stats';
 import FloatingAssistant from '@/components/FloatingAssistant';
 
 export const DrawerContext = createContext({
@@ -61,36 +57,15 @@ const borderCol =
     ? '#2E2E2E'
     : '#E2E8F0';
 
-  // Counts
-  const [notesCount, setNotesCount] = useState(
-    () =>
-      localDb
-        .getNotes()
-        .filter((n) => !n.isArchived).length
-  );
-
-  const [tasksCount, setTasksCount] = useState(
-    () =>
-      localDb
-        .getTasks()
-        .filter((t) => !t.completed).length
-  );
+  // Notes and Tasks dynamic counts
+  const [notesCount, setNotesCount] = useState(() => localDb.getNotes().filter(n => !n.isArchived).length);
+  const [tasksCount, setTasksCount] = useState(() => localDb.getTasks().filter(t => !t.completed).length);
 
   useEffect(() => {
     const unsubscribe = localDb.subscribe(() => {
-      setNotesCount(
-        localDb
-          .getNotes()
-          .filter((n) => !n.isArchived).length
-      );
-
-      setTasksCount(
-        localDb
-          .getTasks()
-          .filter((t) => !t.completed).length
-      );
+      setNotesCount(localDb.getNotes().filter(n => !n.isArchived).length);
+      setTasksCount(localDb.getTasks().filter(t => !t.completed).length);
     });
-
     return unsubscribe;
   }, []);
 
@@ -136,16 +111,8 @@ const borderCol =
       'Log Out',
       'Are you sure you want to log out of GabAi?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Log Out',
-          style: 'destructive',
-          onPress: () =>
-            router.replace('/(auth)/login/login'),
-        },
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Log Out', style: 'destructive', onPress: () => router.replace('/(auth)/login/login') },
       ]
     );
   };
@@ -269,79 +236,39 @@ const borderCol =
             },
           ]}
         >
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={
-              styles.drawerContent
-            }
-          >
-            {/* Profile */}
-            <View
-              style={[
-                styles.profile,
-                {
-                  borderBottomColor: borderCol,
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.avatar,
-                  {
-                    backgroundColor: primaryBrown,
-                  },
-                ]}
-              >
-                <Text style={styles.avatarText}>
-                  RV
-                </Text>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.drawerContent}>
+
+            {/* 1. Profile Section */}
+            <View style={[styles.profileSection, { borderBottomColor: borderCol }]}>
+              <View style={styles.profileHeader}>
+                <View style={[styles.avatar, { backgroundColor: primaryBrown }]}>
+                  <Text style={styles.avatarText}>SV</Text>
+                </View>
+                <View style={styles.profileInfo}>
+                  <Text style={[styles.profileName, { color: textPrimary }]}>Ruenz Vience</Text>
+                  <Text style={[styles.profileCourse, { color: textSecondary }]}>BS Computer Science • Yr 4</Text>
+                  <View style={styles.statusRow}>
+                    <View style={[styles.statusDot, { backgroundColor: successGreen }]} />
+                    <Text style={[styles.statusText, { color: successGreen }]}>Offline Sync Active</Text>
+                  </View>
+                </View>
               </View>
 
-              <View style={styles.profileInfo}>
-                <Text
-                  style={[
-                    styles.profileName,
-                    {
-                      color: textPrimary,
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  Ruenz Vience
-                </Text>
-
-                <Text
-                  style={[
-                    styles.profileCourse,
-                    {
-                      color: textSecondary,
-                    },
-                  ]}
-                >
-                  BSIT • Year 4
-                </Text>
-
-                <View style={styles.status}>
-                  <View
-                    style={[
-                      styles.statusDot,
-                      {
-                        backgroundColor:
-                          successGreen,
-                      },
-                    ]}
-                  />
-
-                  <Text
-                    style={[
-                      styles.statusText,
-                      {
-                        color: successGreen,
-                      },
-                    ]}
-                  >
-                    Offline
-                  </Text>
+              {/* Compact Academic Summary */}
+              <View style={[styles.academicSummaryRow, { backgroundColor: bgTheme, borderColor: borderCol }]}>
+                <View style={styles.summaryColumn}>
+                  <Text style={[styles.summaryLabel, { color: textSecondary }]}>Sem</Text>
+                  <Text style={[styles.summaryVal, { color: textPrimary }]}>1st</Text>
+                </View>
+                <View style={[styles.verticalDivider, { backgroundColor: borderCol }]} />
+                <View style={styles.summaryColumn}>
+                  <Text style={[styles.summaryLabel, { color: textSecondary }]}>Streak</Text>
+                  <Text style={[styles.summaryVal, { color: textPrimary }]}>5 Days</Text>
+                </View>
+                <View style={[styles.verticalDivider, { backgroundColor: borderCol }]} />
+                <View style={styles.summaryColumn}>
+                  <Text style={[styles.summaryLabel, { color: textSecondary }]}>Done</Text>
+                  <Text style={[styles.summaryVal, { color: textPrimary }]}>87%</Text>
                 </View>
               </View>
             </View>
@@ -469,25 +396,88 @@ const borderCol =
 
               {/* Logout */}
               <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={handleLogout}
-                style={styles.footerItem}
+                style={styles.menuItem}
+                onPress={() => { closeDrawer(); router.push('/productivity' as any); }}
               >
-                <Feather
-                  name="log-out"
-                  size={17}
-                  color={errorRed}
-                />
+                <Feather name="target" size={18} color={textSecondary} style={styles.menuIcon} />
+                <Text style={[styles.menuText, { color: textSecondary }]}>Focus Session</Text>
+              </TouchableOpacity>
 
-                <Text
-                  style={[
-                    styles.menuText,
-                    {
-                      color: errorRed,
-                    },
-                  ]}
-                >
-                  Log Out
+              {/* Assistant Chat */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => { closeDrawer(); router.push('/assistant'); }}
+              >
+                <Feather name="message-square" size={18} color={textSecondary} style={styles.menuIcon} />
+                <Text style={[styles.menuText, { color: textSecondary }]}>Virtual Assistant</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* 3. Quick Actions row of buttons */}
+            <View style={styles.quickActionsSection}>
+              <Text style={[styles.menuSectionHeader, { color: textSecondary, marginBottom: 8 }]}>QUICK ACTIONS</Text>
+              <View style={styles.quickActionsRow}>
+                <TouchableOpacity style={[styles.quickActionBtn, { backgroundColor: bgTheme, borderColor: borderCol }]} onPress={() => handleNavigate('/(tabs)/tasks/task')}>
+                  <Feather name="plus" size={14} color={primaryBrown} />
+                  <Text style={[styles.quickActionBtnText, { color: textPrimary }]}>Task</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.quickActionBtn, { backgroundColor: bgTheme, borderColor: borderCol }]} onPress={() => handleNavigate('/(tabs)/notes/notes')}>
+                  <Feather name="edit-3" size={14} color={primaryBrown} />
+                  <Text style={[styles.quickActionBtnText, { color: textPrimary }]}>Note</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.quickActionBtn, { backgroundColor: bgTheme, borderColor: borderCol }]} onPress={() => handleNavigate('/(tabs)/expenses/expenses')}>
+                  <Feather name="dollar-sign" size={14} color={primaryBrown} />
+                  <Text style={[styles.quickActionBtnText, { color: textPrimary }]}>Spend</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.quickActionBtn, { backgroundColor: bgTheme, borderColor: borderCol }]} onPress={() => handleNavigate('/(tabs)/calendar/calendar')}>
+                  <Feather name="calendar" size={14} color={primaryBrown} />
+                  <Text style={[styles.quickActionBtnText, { color: textPrimary }]}>Event</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* 4. Academic Shortcuts */}
+            <View style={styles.shortcutsSection}>
+              <Text style={[styles.menuSectionHeader, { color: textSecondary }]}>ACADEMIC SHORTCUTS</Text>
+              <View style={styles.shortcutRow}>
+                <View style={[styles.shortcutDot, { backgroundColor: warningOrange }]} />
+                <Text style={[styles.shortcutText, { color: textSecondary }]}>Today&apos;s Classes: 2 Remaining</Text>
+              </View>
+              <View style={styles.shortcutRow}>
+                <View style={[styles.shortcutDot, { backgroundColor: errorRed }]} />
+                <Text style={[styles.shortcutText, { color: textSecondary }]}>Assignments Due Today: 3 Pending</Text>
+              </View>
+              <View style={styles.shortcutRow}>
+                <View style={[styles.shortcutDot, { backgroundColor: successGreen }]} />
+                <Text style={[styles.shortcutText, { color: textSecondary }]}>Upcoming Deadlines: 5 Sorted</Text>
+              </View>
+            </View>
+
+            {/* 5. Productivity Summary Cards */}
+            <View style={styles.productivitySummary}>
+              <Text style={[styles.menuSectionHeader, { color: textSecondary, marginBottom: 8 }]}>DAILY SUMMARY</Text>
+              <View style={[styles.progressCard, { backgroundColor: bgTheme, borderColor: borderCol }]}>
+                <Text style={[styles.progressLabel, { color: textSecondary }]}>Today&apos;s Completion Rate</Text>
+                <Text style={[styles.progressVal, { color: textPrimary }]}>87% Done</Text>
+                <View style={[styles.miniProgressBg, { backgroundColor: borderCol }]}>
+                  <View style={[styles.miniProgressFill, { backgroundColor: primaryBrown, width: '87%' }]} />
+                </View>
+              </View>
+              <View style={[styles.progressCard, { backgroundColor: bgTheme, borderColor: borderCol, marginTop: 8 }]}>
+                <Text style={[styles.progressLabel, { color: textSecondary }]}>Academic Pressure</Text>
+                <Text style={[styles.pressureVal, { color: errorRed }]}>High Pressure</Text>
+              </View>
+            </View>
+
+            {/* 6. Settings & Logout Footer */}
+            <View style={[styles.footerSection, { borderTopColor: borderCol }]}>
+              <TouchableOpacity
+                style={[styles.menuItem, isActiveRoute('profile') && { backgroundColor: primaryBrown + '12' }]}
+                onPress={() => handleNavigate('/(tabs)/profile/profile')}
+              >
+                <Feather name="settings" size={16} color={isActiveRoute('profile') ? primaryBrown : textSecondary} style={styles.menuIcon} />
+                <Text style={[styles.menuText, { color: isActiveRoute('profile') ? textPrimary : textSecondary }]}>
+                  Settings & Profile
                 </Text>
               </TouchableOpacity>
             </View>
